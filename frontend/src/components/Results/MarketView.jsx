@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
-import { BarChart3, Users, Shield, TrendingUp, Target, Zap } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Target, Zap, Shield, Copy, Download, Sparkles } from 'lucide-react';
+import { FunnelChart } from '../shared/FunnelChart';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: { staggerChildren: 0.1 }
+        transition: { staggerChildren: 0.08 }
     }
 };
 
@@ -14,54 +16,26 @@ const itemVariants = {
     visible: { opacity: 1, y: 0 }
 };
 
-
-
 function MarketView({ data }) {
-
-
-    // Add this check at the beginning of the component:
     if (!data || (!data.market_size && !data.competitors)) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <BarChart3 className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-                <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+                <BarChart3 className="w-12 h-12 text-(--color-text-muted) mb-4" />
+                <p className="text-(--color-text-secondary) text-lg font-medium mb-2">
                     No market analysis available
                 </p>
-                <p className="text-[var(--color-text-tertiary)] text-sm">
+                <p className="text-(--color-text-tertiary) text-sm">
                     Generate a startup concept to see market analysis
                 </p>
             </div>
         );
     }
 
-    // Update the TAM/SAM/SOM mapping to handle both string and object formats:
-    const labels = {
-        tam: { name: 'Total Addressable Market', description: data.market_size?.tam?.description || '' },
-        sam: { name: 'Serviceable Addressable Market', description: data.market_size?.sam?.description || '' },
-        som: { name: 'Serviceable Obtainable Market', description: data.market_size?.som?.description || '' }
-    };
-
     const swotColors = {
-        strengths: {
-            bgClass: 'bg-[var(--color-success-bg)]',
-            textClass: 'text-[var(--color-success)]',
-            icon: Zap
-        },
-        weaknesses: {
-            bgClass: 'bg-[var(--color-error-bg)]',
-            textClass: 'text-[var(--color-error)]',
-            icon: Shield
-        },
-        opportunities: {
-            bgClass: 'bg-[var(--color-info-bg)]',
-            textClass: 'text-[var(--color-info)]',
-            icon: TrendingUp
-        },
-        threats: {
-            bgClass: 'bg-[var(--color-warning-bg)]',
-            textClass: 'text-[var(--color-warning)]',
-            icon: Target
-        }
+        strengths: { bg: 'bg-(--color-success-bg)', text: 'text-(--color-success)', border: 'border-(--color-success)', icon: Zap },
+        weaknesses: { bg: 'bg-(--color-error-bg)', text: 'text-(--color-error)', border: 'border-(--color-error)', icon: Shield },
+        opportunities: { bg: 'bg-(--color-info-bg)', text: 'text-(--color-info)', border: 'border-(--color-info)', icon: TrendingUp },
+        threats: { bg: 'bg-(--color-warning-bg)', text: 'text-(--color-warning)', border: 'border-(--color-warning)', icon: Target }
     };
 
     return (
@@ -69,228 +43,215 @@ function MarketView({ data }) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-4xl mx-auto space-y-6"
+            className="results-container"
         >
-            {/* Header */}
-            <motion.div variants={itemVariants} className="text-center">
-                <h2 className="h2 mb-2">
+            {/* Hero Header */}
+            <motion.div variants={itemVariants} className="results-hero">
+                <motion.div
+                    className="results-hero-icon"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                >
+                    <BarChart3 className="w-10 h-10 text-white" />
+                </motion.div>
+
+                <h1 className="results-hero-title">
                     Market Analysis
-                </h2>
-                <p className="text-[var(--color-text-secondary)]">
-                    Market size, competition, and go-to-market strategy
+                </h1>
+
+                <p className="results-hero-subtitle">
+                    Market size, competition, and strategic positioning
                 </p>
             </motion.div>
 
-            {/* Market Size */}
+            {/* Market Size - Funnel Visualization */}
             {data.market_size && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-primary-bg)]">
-                            <BarChart3 className="w-5 h-5 text-[var(--color-primary)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <BarChart3 />
                         </div>
-                        <h3 className="h4">
-                            Market Size
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">Market Opportunity</h2>
+                            <p className="results-section-subtitle">Total addressable market breakdown</p>
+                        </div>
                     </div>
-                    <div className="grid md:grid-cols-3 gap-4">
-                        {['tam', 'sam', 'som'].map((key) => {
-                            const item = data.market_size[key];
-                            if (!item) return null;
+                    
+                    <div className="market-funnel">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="market-funnel-stage tam"
+                        >
+                            <div className="market-funnel-stage-header">
+                                <span className="market-funnel-stage-label">TAM</span>
+                                <span className="market-funnel-stage-value">{data.market_size.tam?.value || data.market_size.tam}</span>
+                            </div>
+                            <p className="market-funnel-stage-description">{data.market_size.tam?.description || 'Total Addressable Market'}</p>
+                        </motion.div>
 
-                            const labels = {
-                                tam: 'Total Addressable Market',
-                                sam: 'Serviceable Addressable Market',
-                                som: 'Serviceable Obtainable Market'
-                            };
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="market-funnel-stage sam"
+                        >
+                            <div className="market-funnel-stage-header">
+                                <span className="market-funnel-stage-label">SAM</span>
+                                <span className="market-funnel-stage-value">{data.market_size.sam?.value || data.market_size.sam}</span>
+                            </div>
+                            <p className="market-funnel-stage-description">{data.market_size.sam?.description || 'Serviceable Addressable Market'}</p>
+                        </motion.div>
 
-                            return (
-                                <div
-                                    key={key}
-                                    className="rounded-xl bg-[var(--color-bg-secondary)] p-5 text-center"
-                                >
-                                    <p
-                                        className="mb-2 text-3xl font-bold text-[var(--color-primary)]"
-                                    >
-                                        {item.value}
-                                    </p>
-                                    <p
-                                        className="mb-1 text-sm font-medium uppercase tracking-wide text-[var(--color-text-muted)]"
-                                    >
-                                        {key.toUpperCase()}
-                                    </p>
-                                    <p
-                                        className="text-xs text-[var(--color-text-tertiary)]"
-                                    >
-                                        {labels[key]}
-                                    </p>
-                                    {item.description && (
-                                        <p
-                                            className="mt-2 text-xs text-[var(--color-text-secondary)]"
-                                        >
-                                            {item.description}
-                                        </p>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="market-funnel-stage som"
+                        >
+                            <div className="market-funnel-stage-header">
+                                <span className="market-funnel-stage-label">SOM</span>
+                                <span className="market-funnel-stage-value">{data.market_size.som?.value || data.market_size.som}</span>
+                            </div>
+                            <p className="market-funnel-stage-description">{data.market_size.som?.description || 'Serviceable Obtainable Market'}</p>
+                        </motion.div>
                     </div>
                 </motion.div>
             )}
 
             {/* Competitors */}
             {data.competitors && data.competitors.length > 0 && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-secondary-bg)]">
-                            <Users className="w-5 h-5 text-[var(--color-secondary)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <Users />
                         </div>
-                        <h3 className="h4">
-                            Competitive Landscape
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">Competitive Landscape</h2>
+                            <p className="results-section-subtitle">{data.competitors.length} key competitors identified</p>
+                        </div>
                     </div>
-                    <div className="space-y-4">
+
+                    <div className="competitor-grid">
                         {data.competitors.map((competitor, index) => (
-                            <div
+                            <motion.div
                                 key={index}
-                                className="rounded-xl bg-[var(--color-bg-secondary)] p-4"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.1 * index }}
+                                whileHover={{ y: -4 }}
+                                className="competitor-card"
                             >
-                                <h4
-                                    className="mb-2 font-semibold text-[var(--color-text-primary)]"
-                                >
-                                    {competitor.name}
-                                </h4>
-                                <p
-                                    className="mb-3 text-sm text-[var(--color-text-secondary)]"
-                                >
-                                    {competitor.description}
-                                </p>
-                                <div className="grid md:grid-cols-2 gap-3 text-sm">
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-success-bg)] text-[var(--color-success)] font-medium">
-                                            Strengths
-                                        </span>
-                                        <span className="text-[var(--color-text-tertiary)]">
-                                            {competitor.strengths}
-                                        </span>
+                                <div className="competitor-card-header">
+                                    <div>
+                                        <h4 className="competitor-card-name">{competitor.name}</h4>
+                                        {competitor.market_position && (
+                                            <span className="competitor-card-position">{competitor.market_position}</span>
+                                        )}
                                     </div>
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-error-bg)] text-[var(--color-error)] font-medium">
-                                            Weaknesses
-                                        </span>
-                                        <span className="text-[var(--color-text-tertiary)]">
-                                            {competitor.weaknesses}
-                                        </span>
-                                    </div>
+                                    <div className="competitor-card-rank">{index + 1}</div>
                                 </div>
-                            </div>
+                                
+                                {competitor.strengths && (
+                                    <div className="competitor-card-section">
+                                        <p className="competitor-card-label strengths">Strengths</p>
+                                        <p className="competitor-card-text">{competitor.strengths}</p>
+                                    </div>
+                                )}
+                                
+                                {competitor.weaknesses && (
+                                    <div className="competitor-card-section">
+                                        <p className="competitor-card-label weaknesses">Weaknesses</p>
+                                        <p className="competitor-card-text">{competitor.weaknesses}</p>
+                                    </div>
+                                )}
+                            </motion.div>
                         ))}
                     </div>
                 </motion.div>
             )}
 
-            {/* SWOT Analysis */}
+            {/* SWOT Analysis - 4 Quadrant Grid */}
             {data.swot && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-info-bg)]">
-                            <Target className="w-5 h-5 text-[var(--color-info)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <Target />
                         </div>
-                        <h3 className="h4">
-                            SWOT Analysis
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">SWOT Analysis</h2>
+                            <p className="results-section-subtitle">Strategic positioning and market opportunities</p>
+                        </div>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        {Object.entries(data.swot).map(([key, items]) => {
-                            const config = swotColors[key];
-                            if (!config || !items) return null;
-                            const Icon = config.icon;
 
+                    <div className="swot-grid">
+                        {Object.entries(swotColors).map(([key, style]) => {
+                            const items = data.swot[key];
+                            if (!items || items.length === 0) return null;
+                            
+                            const Icon = style.icon;
+                            
                             return (
-                                <div
+                                <motion.div
                                     key={key}
-                                    className={`rounded-xl p-4 ${config.bgClass}`}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.1 }}
+                                    className={`swot-card ${key}`}
                                 >
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <Icon className={`w-4 h-4 ${config.textClass}`} />
-                                        <h4
-                                            className={`font-semibold capitalize ${config.textClass}`}
-                                        >
-                                            {key}
-                                        </h4>
+                                    <div className="swot-card-header">
+                                        <div className="swot-card-icon">
+                                            <Icon />
+                                        </div>
+                                        <h3 className="swot-card-title">{key}</h3>
                                     </div>
-                                    <ul className="space-y-2">
-                                        {items.map((item, i) => (
-                                            <li
-                                                key={i}
-                                                className="flex items-start gap-2 text-sm text-[var(--color-text-secondary)]"
-                                            >
-                                                <span className={config.textClass}>•</span>
-                                                {item}
+                                    
+                                    <ul className="swot-card-list">
+                                        {items.map((item, idx) => (
+                                            <li key={idx} className="swot-card-item">
+                                                <span className="swot-card-bullet" />
+                                                <p className="swot-card-text">{item}</p>
                                             </li>
                                         ))}
                                     </ul>
-                                </div>
+                                </motion.div>
                             );
                         })}
                     </div>
                 </motion.div>
             )}
 
-            {/* Go to Market */}
-            {data.go_to_market && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-primary-bg)]">
-                            <TrendingUp className="w-5 h-5 text-[var(--color-primary)]" />
+            {/* Go-to-Market Strategy */}
+            {data.gtm_strategy && (
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <TrendingUp />
                         </div>
-                        <h3 className="h4">
-                            Go-to-Market Strategy
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">Go-to-Market Strategy</h2>
+                            <p className="results-section-subtitle">Strategic approach to market entry</p>
+                        </div>
                     </div>
-                    <div className="space-y-4">
-                        {Object.entries(data.go_to_market).map(([key, phase], index) => (
-                            <div
-                                key={key}
-                                className="flex gap-4"
+                    
+                    <div className="gtm-strategy-list">
+                        {data.gtm_strategy.phases?.map((phase, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 * index }}
+                                whileHover={{ x: 4 }}
+                                className="gtm-strategy-phase"
                             >
-                                <div className="flex flex-col items-center">
-                                    <div
-                                        className="flex h-10 w-10 items-center justify-center rounded-full text-white font-bold bg-[var(--color-primary)]"
-                                    >
-                                        {index + 1}
-                                    </div>
-                                    {index < Object.keys(data.go_to_market).length - 1 && (
-                                        <div
-                                            className="my-2 w-0.5 flex-1 bg-[var(--color-border)]"
-                                        />
-                                    )}
+                                <div className="gtm-phase-number">{index + 1}</div>
+                                <div className="gtm-phase-content">
+                                    <h4 className="gtm-phase-title">{phase.phase || `Phase ${index + 1}`}</h4>
+                                    <p className="gtm-phase-text">{phase.strategy || phase}</p>
                                 </div>
-                                <div className="flex-1 pb-4">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h4
-                                            className="font-semibold text-[var(--color-text-primary)]"
-                                        >
-                                            {phase.name}
-                                        </h4>
-                                        <span
-                                            className="badge badge-primary"
-                                        >
-                                            {phase.duration}
-                                        </span>
-                                    </div>
-                                    <ul className="space-y-1">
-                                        {phase.activities?.map((activity, i) => (
-                                            <li
-                                                key={i}
-                                                className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"
-                                            >
-                                                <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
-                                                {activity}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </motion.div>

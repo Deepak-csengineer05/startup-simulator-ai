@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock } from 'lucide-react';
+import { ArrowRight, AlertCircle, Loader2, Lock } from 'lucide-react';
 
 /**
  * Premium DashboardCard Component
@@ -11,39 +11,42 @@ import { ArrowRight, Lock } from 'lucide-react';
  * - Uses strict design tokens (no arbitrary values)
  */
 
-function DashboardCard({ icon: Icon, title, description, onClick, disabled = false }) {
+function DashboardCard({ icon: Icon, title, description, onClick, disabled = false, onGenerate = null, isGenerating = false }) {
     return (
         <motion.div
-            whileHover={!disabled ? { y: -8 } : {}}
-            whileTap={!disabled ? { scale: 0.98 } : {}}
+            whileHover={!disabled && !isGenerating ? { y: -8 } : {}}
+            whileTap={!disabled && !isGenerating ? { scale: 0.98 } : {}}
             className={`
-                group relative overflow-hidden
+                dashboard-card group relative overflow-hidden
                 transition-all duration-300
-                ${disabled
-                    ? 'cursor-not-allowed opacity-60'
+                ${disabled || isGenerating
+                    ? 'cursor-default'
                     : 'cursor-pointer'
                 }
             `}
-            onClick={!disabled ? onClick : undefined}
+            onClick={!disabled && !isGenerating ? onClick : undefined}
             role={!disabled ? "button" : undefined}
             tabIndex={!disabled ? 0 : -1}
-            onKeyDown={!disabled ? (e) => {
+            data-disabled={disabled || isGenerating}
+            onKeyDown={!disabled && !isGenerating ? (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     onClick?.();
                 }
             } : undefined}
-            aria-label={`${title} module${disabled ? ' (locked)' : ''}`}
+            aria-label={`${title} module${disabled ? ' (not generated)' : ''}`}
             aria-disabled={disabled}
-            style={{
-                background: 'var(--color-bg-card)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-xl)',
-                padding: 'var(--space-6)',
+            onFocus={(e) => {
+                if (e.target.matches(':focus-visible')) {
+                    e.target.style.boxShadow = 'var(--focus-ring)';
+                }
+            }}
+            onBlur={(e) => {
+                e.target.style.boxShadow = '';
             }}
         >
             {/* Gradient border effect on hover */}
-            {!disabled && (
+            {!disabled && !isGenerating && (
                 <div
                     className="absolute inset-0 rounded-[inherit] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{
@@ -67,7 +70,7 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
             />
 
             {/* Background gradient subtle effect */}
-            {!disabled && (
+            {!disabled && !isGenerating && (
                 <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                     style={{
@@ -82,13 +85,13 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                 <motion.div
                     className="flex items-center justify-center"
                     style={{
-                        width: '48px',
-                        height: '48px',
+                        width: 'clamp(40px, 10vw, 48px)',
+                        height: 'clamp(40px, 10vw, 48px)',
                         borderRadius: 'var(--radius-lg)',
                         background: disabled
                             ? 'var(--color-bg-tertiary)'
                             : 'var(--color-primary-bg)',
-                        marginBottom: 'var(--space-4)',
+                        marginBottom: 'clamp(12px, 3vw, 16px)',
                         transition: 'all var(--transition-base)',
                     }}
                     whileHover={!disabled ? { scale: 1.1, rotate: 5 } : {}}
@@ -96,8 +99,8 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                     {disabled ? (
                         <Lock
                             style={{
-                                width: '24px',
-                                height: '24px',
+                                width: 'clamp(20px, 5vw, 24px)',
+                                height: 'clamp(20px, 5vw, 24px)',
                                 color: 'var(--color-text-muted)'
                             }}
                         />
@@ -107,8 +110,8 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                         >
                             <Icon
                                 style={{
-                                    width: '24px',
-                                    height: '24px',
+                                    width: 'clamp(20px, 5vw, 24px)',
+                                    height: 'clamp(20px, 5vw, 24px)',
                                     color: 'var(--color-primary)',
                                     transition: 'color var(--transition-base)',
                                 }}
@@ -142,7 +145,7 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                 </p>
 
                 {/* Action Arrow */}
-                {!disabled && (
+                {!disabled && !isGenerating && (
                     <motion.div
                         className="flex items-center font-semibold group-hover:translate-x-1 transition-transform duration-300"
                         style={{
@@ -156,7 +159,42 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                     </motion.div>
                 )}
 
-                {disabled && (
+                {isGenerating && (
+                    <div
+                        className="flex items-center font-medium"
+                        style={{
+                            fontSize: 'var(--font-size-body-sm)',
+                            color: 'var(--color-warning)',
+                            gap: 'var(--space-2)',
+                        }}
+                    >
+                        <span>Generating...</span>
+                    </div>
+                )}
+
+                {disabled && onGenerate && !isGenerating && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onGenerate?.();
+                        }}
+                        className="flex items-center font-semibold hover:translate-x-1 transition-all duration-300"
+                        style={{
+                            fontSize: 'var(--font-size-body-sm)',
+                            color: 'var(--color-primary)',
+                            gap: 'var(--space-2)',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <span>Generate Module</span>
+                        <ArrowRight style={{ width: '16px', height: '16px' }} />
+                    </button>
+                )}
+
+                {disabled && !onGenerate && !isGenerating && (
                     <div
                         className="flex items-center font-medium"
                         style={{
@@ -165,19 +203,10 @@ function DashboardCard({ icon: Icon, title, description, onClick, disabled = fal
                             gap: 'var(--space-2)',
                         }}
                     >
-                        <Lock style={{ width: '14px', height: '14px' }} />
-                        <span>Locked</span>
+                        <span>Not generated</span>
                     </div>
                 )}
             </div>
-
-            {/* Focus ring for keyboard navigation */}
-            <style jsx>{`
-                div:focus-visible {
-                    outline: none;
-                    box-shadow: var(--focus-ring);
-                }
-            `}</style>
         </motion.div>
     );
 }

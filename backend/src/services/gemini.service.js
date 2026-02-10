@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import dns from 'dns';
 import config from '../config/index.js';
 import { logger, observability } from '../utils/observability/index.js';
+
+// Force IPv4 to avoid Windows Node.js IPv6 issues
+dns.setDefaultAutoSelectFamily?.(false);
 
 const genAI = new GoogleGenerativeAI(config.geminiApiKey);
 
@@ -14,6 +18,7 @@ const MODELS = [
 ];
 
 const MAX_JSON_RETRIES = 2;
+const MAX_NETWORK_RETRIES = 3;
 
 /* ---------------------------------------
    Utilities
@@ -29,7 +34,8 @@ async function generateWithFallback(
   promptText,
   schemaDescription,
   modelIndex = 0,
-  jsonRetryCount = 0
+  jsonRetryCount = 0,
+  networkRetryCount = 0
 ) {
   if (modelIndex >= MODELS.length) {
     throw new Error('Content Generation quota exhausted. Please try again later.');
@@ -112,7 +118,37 @@ Return ONLY raw JSON.`;
       error.message?.includes('not found')
     ) {
       logger.warn('Model unavailable, falling back', { model: modelName });
-      return generateWithFallback(promptText, schemaDescription, modelIndex + 1, 0);
+      return generateWithFallback(promptText, schemaDescription, modelIndex + 1, 0, 0);
+    }
+
+    /* ---------- NETWORK ERRORS (fetch failed, ECONNREFUSED, etc.) ---------- */
+    const isNetworkError = 
+      error.message?.includes('fetch failed') ||
+      error.message?.includes('ECONNREFUSED') ||
+      error.message?.includes('ENOTFOUND') ||
+      error.message?.includes('ETIMEDOUT') ||
+      error.code === 'ECONNRESET' ||
+      error.code === 'ECONNREFUSED';
+
+    if (isNetworkError && networkRetryCount < MAX_NETWORK_RETRIES) {
+      const retryDelay = Math.pow(2, networkRetryCount) * 2000; // Exponential backoff: 2s, 4s, 8s
+      
+      logger.warn('Network error, retrying...', {
+        model: modelName,
+        retry: networkRetryCount + 1,
+        retryAfterMs: retryDelay,
+        error: error.message
+      });
+
+      await sleep(retryDelay);
+
+      return generateWithFallback(
+        promptText,
+        schemaDescription,
+        modelIndex,
+        0,
+        networkRetryCount + 1
+      );
     }
 
     /* ---------- REAL FAILURE ---------- */
@@ -136,13 +172,22 @@ Raw Idea: "${ideaText}"
 Industry Domain: "${domain}"
 Brand Tone: "${tone}"
 
-Extract the core problem being solved, define a clear value proposition/solution, identify 3 specific target user personas with demographics, and define 4 concrete MVP features essential for launch.`;
+REQUIREMENTS:
+1. Extract the core problem being solved (1-2 sentences)
+2. Define a clear value proposition/solution (1-2 sentences)
+3. Identify 3 specific target user personas with demographics
+4. Define exactly 4-6 concrete MVP features essential for launch
+
+CRITICAL: The "core_features" array MUST contain 4-6 specific, actionable features. Do not leave it empty.
+
+Example core_features format:
+["User authentication with email/password", "Dashboard with key metrics", "Payment integration with Stripe", "Real-time notifications"]`;
 
   const schema = `{
-  "problem_summary": "string",
-  "solution_summary": "string",
-  "target_users": ["string"],
-  "core_features": ["string"]
+  "problem_summary": "string (1-2 sentences)",
+  "solution_summary": "string (1-2 sentences)",
+  "target_users": ["string", "string", "string"] (exactly 3 items),
+  "core_features": ["string", "string", "string", "string"] (4-6 items, REQUIRED)
 }`;
 
   return generateWithFallback(prompt, schema);

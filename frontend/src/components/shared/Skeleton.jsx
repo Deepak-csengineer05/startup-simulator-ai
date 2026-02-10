@@ -130,23 +130,31 @@ export function ListItemSkeleton() {
 // Dashboard Grid Skeleton
 export function DashboardGridSkeleton({ count = 8 }) {
     return (
-        <div
-            style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: 'var(--space-6)',
-            }}
-        >
-            {Array.from({ length: count }).map((_, index) => (
-                <motion.div
-                    key={index}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                >
-                    <CardSkeleton />
-                </motion.div>
-            ))}
+        <div className="dashboard-grid-wrapper">
+            <div className="dashboard-header">
+                <div className="dashboard-header-gradient">
+                    <Skeleton width="400px" height="48px" style={{ marginBottom: 'var(--space-3)', marginLeft: 'auto', marginRight: 'auto' }} />
+                    <Skeleton width="250px" height="20px" style={{ marginLeft: 'auto', marginRight: 'auto' }} />
+                </div>
+            </div>
+
+            <div className="dashboard-grid">
+                {Array.from({ length: count }).map((_, index) => (
+                    <motion.div
+                        key={index}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ 
+                            delay: index * 0.05,
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 24
+                        }}
+                    >
+                        <div className="skeleton-dashboard-card" />
+                    </motion.div>
+                ))}
+            </div>
         </div>
     );
 }

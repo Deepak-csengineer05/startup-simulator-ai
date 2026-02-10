@@ -55,7 +55,7 @@ export default function SettingsModal({ isOpen, onClose }) {
 
     // Track dirty state
     useEffect(() => {
-        const hasChanges = 
+        const hasChanges =
             settings.notifications !== initialSettings.notifications ||
             settings.autoSave !== initialSettings.autoSave ||
             settings.analytics !== initialSettings.analytics ||
@@ -120,11 +120,11 @@ export default function SettingsModal({ isOpen, onClose }) {
 
         // TODO: Call backend API to delete account
         // await api.delete('/users/account');
-        
+
         // Clear all local data
         localStorage.clear();
         sessionStorage.clear();
-        
+
         // Logout and redirect
         await logout();
     };
@@ -147,7 +147,7 @@ export default function SettingsModal({ isOpen, onClose }) {
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 lg:p-16"
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-8 lg:p-16"
             onClick={onClose}
             onKeyDown={handleKeyDown}
             style={{
@@ -197,14 +197,17 @@ export default function SettingsModal({ isOpen, onClose }) {
                 }
             `}</style>
             <div
-                className="card w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
+                className="card w-full max-w-2xl overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="settings-modal-title"
+                style={{
+                    maxHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px)',
+                }}
             >
                 {/* Header */}
-                <div className="px-4 py-4 sm:px-6 sm:py-6" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <div className="px-4 sm:px-6" style={{ borderBottom: '1px solid var(--color-border)', paddingTop: '20px', paddingBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
                             <h2
@@ -217,7 +220,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                             >
                                 Settings
                             </h2>
-                            <p className="text-xs sm:text-sm" style={{ color: 'var(--color-text-secondary)', marginTop: '4px' }}>
+                            <p className="text-xs sm:text-sm" style={{ color: 'var(--color-text-secondary)', marginTop: '8px' }}>
                                 Manage your application preferences
                             </p>
                         </div>
@@ -245,7 +248,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="px-4 pt-4 sm:px-6 sm:pt-6">
+                <div className="px-4 pb-2 sm:px-6 sm:pb-4" style={{ paddingTop: '32px' }}>
                     <div className="tab-list">
                         <button
                             className={`tab ${activeTab === 'general' ? 'active' : ''}`}
@@ -275,9 +278,9 @@ export default function SettingsModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+                <div className="flex-1 overflow-y-auto px-4 pt-12 pb-4 sm:px-6 sm:pt-14 sm:pb-6" style={{ marginTop: '8px' }}>
                     {activeTab === 'general' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
                                     padding: '16px',
@@ -321,17 +324,17 @@ export default function SettingsModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'appearance' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Dark Mode
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -354,17 +357,17 @@ export default function SettingsModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'notifications' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Push Notifications
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -379,14 +382,14 @@ export default function SettingsModal({ isOpen, onClose }) {
                             </div>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Email Digest
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -403,17 +406,17 @@ export default function SettingsModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'privacy' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Analytics
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -428,12 +431,12 @@ export default function SettingsModal({ isOpen, onClose }) {
                             </div>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
-                                <div style={{ marginBottom: '8px' }}>
+                                <div style={{ marginBottom: '12px' }}>
                                     <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)' }}>
                                         Data Management
                                     </div>
@@ -442,16 +445,16 @@ export default function SettingsModal({ isOpen, onClose }) {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                                    <button 
-                                        className="btn btn-secondary" 
+                                    <button
+                                        className="btn btn-secondary"
                                         style={{ fontSize: 'var(--font-size-body-sm)', padding: 'var(--space-2) var(--space-4)' }}
                                         onClick={handleExportData}
                                     >
                                         Export Data
                                     </button>
                                     {!showDeleteConfirm ? (
-                                        <button 
-                                            className="btn btn-secondary" 
+                                        <button
+                                            className="btn btn-secondary"
                                             style={{ fontSize: 'var(--font-size-body-sm)', padding: 'var(--space-2) var(--space-4)' }}
                                             onClick={handleDeleteAccount}
                                         >
@@ -459,17 +462,17 @@ export default function SettingsModal({ isOpen, onClose }) {
                                         </button>
                                     ) : (
                                         <>
-                                            <button 
-                                                className="btn btn-secondary" 
+                                            <button
+                                                className="btn btn-secondary"
                                                 style={{ fontSize: 'var(--font-size-body-sm)', padding: 'var(--space-2) var(--space-4)' }}
                                                 onClick={handleCancelDelete}
                                             >
                                                 Cancel
                                             </button>
-                                            <button 
-                                                className="btn btn-secondary" 
-                                                style={{ 
-                                                    fontSize: 'var(--font-size-body-sm)', 
+                                            <button
+                                                className="btn btn-secondary"
+                                                style={{
+                                                    fontSize: 'var(--font-size-body-sm)',
                                                     padding: 'var(--space-2) var(--space-4)',
                                                     background: 'var(--color-error)',
                                                     color: 'var(--color-text-inverse)',
@@ -494,9 +497,11 @@ export default function SettingsModal({ isOpen, onClose }) {
 
                 {/* Footer */}
                 <div
-                    className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 py-4 sm:px-6 sm:py-6"
+                    className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 sm:px-6"
                     style={{
                         borderTop: '1px solid var(--color-border)',
+                        paddingTop: '24px',
+                        paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
                     }}
                 >
                     <button

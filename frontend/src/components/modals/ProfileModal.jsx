@@ -25,7 +25,7 @@ export default function ProfileModal({ isOpen, onClose }) {
     // Track dirty state
     useEffect(() => {
         if (!user) return;
-        const hasChanges = 
+        const hasChanges =
             formData.name !== (user.name || '') ||
             formData.email !== (user.email || '') ||
             formData.role !== (user.role || '') ||
@@ -79,7 +79,7 @@ export default function ProfileModal({ isOpen, onClose }) {
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 lg:p-16"
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-8 lg:p-16"
             onClick={onClose}
             onKeyDown={handleKeyDown}
             style={{
@@ -128,14 +128,17 @@ export default function ProfileModal({ isOpen, onClose }) {
                 }
             `}</style>
             <div
-                className="card w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col"
+                className="card w-full max-w-2xl overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="profile-modal-title"
+                style={{
+                    maxHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px)',
+                }}
             >
                 {/* Header */}
-                <div className="px-4 py-4 sm:px-6 sm:py-6" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <div className="px-4 sm:px-6" style={{ borderBottom: '1px solid var(--color-border)', paddingTop: '20px', paddingBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                         <div
                             className="w-12 h-12 sm:w-16 sm:h-16"
@@ -193,7 +196,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="px-4 pt-4 sm:px-6 sm:pt-6">
+                <div className="px-4 pb-2 sm:px-6 sm:pb-4" style={{ paddingTop: '16px' }}>
                     <div className="tab-list">
                         <button
                             className={`tab ${activeTab === 'profile' ? 'active' : ''}`}
@@ -223,9 +226,9 @@ export default function ProfileModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+                <div className="flex-1 overflow-y-auto px-4 pt-12 pb-4 sm:px-6 sm:pt-14 sm:pb-6" style={{ marginTop: '8px' }}>
                     {activeTab === 'profile' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                             <div>
                                 <label
                                     htmlFor="input-name"
@@ -234,7 +237,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Full Name
@@ -255,7 +258,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Email
@@ -276,7 +279,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Role
@@ -298,7 +301,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Company
@@ -320,7 +323,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Bio
@@ -338,7 +341,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'security' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                             <div>
                                 <label
                                     htmlFor="input-current-password"
@@ -347,7 +350,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Current Password
@@ -367,7 +370,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     New Password
@@ -387,7 +390,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Confirm Password
@@ -406,7 +409,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'activity' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
                                     padding: '16px',
@@ -422,13 +425,13 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         {new Date().toLocaleDateString()}
                                     </span>
                                 </div>
-                                <p style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
+                                <p style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
                                     Your account is active
                                 </p>
                             </div>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
@@ -446,7 +449,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                     )}
 
                     {activeTab === 'preferences' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div
                                 style={{
                                     padding: '16px',
@@ -456,7 +459,7 @@ export default function ProfileModal({ isOpen, onClose }) {
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Email Notifications
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -468,14 +471,14 @@ export default function ProfileModal({ isOpen, onClose }) {
                             </div>
                             <div
                                 style={{
-                                    padding: '16px',
+                                    padding: '24px',
                                     borderRadius: 'var(--radius-lg)',
                                     border: '1px solid var(--color-border)',
                                 }}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div>
-                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                             Save Session History
                                         </div>
                                         <div style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -492,19 +495,19 @@ export default function ProfileModal({ isOpen, onClose }) {
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-medium)',
                                         color: 'var(--color-text-secondary)',
-                                        marginBottom: '8px',
+                                        marginBottom: '12px',
                                     }}
                                 >
                                     Current Plan
                                 </label>
                                 <div
                                     style={{
-                                        padding: '16px',
+                                        padding: '24px',
                                         borderRadius: 'var(--radius-lg)',
                                         border: '1px solid var(--color-border)',
                                     }}
                                 >
-                                    <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+                                    <div style={{ fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary)', marginBottom: '6px' }}>
                                         {user.plan || 'Free'}
                                     </div>
                                     <p style={{ fontSize: 'var(--font-size-body-sm)', color: 'var(--color-text-secondary)' }}>
@@ -519,9 +522,11 @@ export default function ProfileModal({ isOpen, onClose }) {
                 {/* Footer */}
                 {activeTab === 'profile' && (
                     <div
-                        className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 py-4 sm:px-6 sm:py-6"
+                        className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 sm:px-6"
                         style={{
                             borderTop: '1px solid var(--color-border)',
+                            paddingTop: '24px',
+                            paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
                         }}
                     >
                         <button

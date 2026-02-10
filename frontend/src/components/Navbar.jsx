@@ -17,11 +17,16 @@ import SettingsModal from './modals/SettingsModal';
 
 function Navbar() {
     const { isDark, toggleTheme } = useTheme();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const location = useLocation();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+    const handleSignOut = async () => {
+        setIsUserMenuOpen(false);
+        await logout();
+    };
 
     // Don't render if user isn't loaded yet
     if (!user) {
@@ -39,16 +44,15 @@ function Navbar() {
             }}
         >
             <div
-                className="max-w-[1400px] mx-auto px-3 sm:px-4 h-14 flex items-center justify-between"
+                className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between"
             >
                 {/* Logo Area */}
                 <div className="flex items-center gap-2" style={{ marginLeft: 'var(--space-4)' }}>
                     <img
                         src="/logo-primary.png"
                         alt="Logo"
+                        className="w-10 h-10 sm:w-11 sm:h-11"
                         style={{
-                            width: '40px',
-                            height: '40px',
                             borderRadius: '50%',
                             objectFit: 'contain'
                         }}
@@ -74,12 +78,14 @@ function Navbar() {
                     <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleTheme}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-3 rounded-lg transition-colors"
                         style={{
                             color: 'var(--color-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            minWidth: '44px',
+                            minHeight: '44px',
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'var(--color-bg-hover)';
@@ -110,12 +116,14 @@ function Navbar() {
                     <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-3 rounded-lg transition-colors"
                         style={{
                             color: 'var(--color-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            minWidth: '44px',
+                            minHeight: '44px',
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'var(--color-bg-hover)';
@@ -136,9 +144,10 @@ function Navbar() {
                             className="flex items-center rounded-lg transition-all"
                             style={{
                                 gap: 'var(--space-2)',
-                                padding: 'var(--space-1) var(--space-2)',
+                                padding: 'var(--space-2) var(--space-3)',
                                 border: '2px solid transparent',
                                 borderColor: isUserMenuOpen ? 'var(--color-border-hover)' : 'transparent',
+                                minHeight: '44px',
                             }}
                             onMouseEnter={(e) => {
                                 if (!isUserMenuOpen) {
@@ -234,7 +243,7 @@ function Navbar() {
                                             <div className="flex items-center" style={{ gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                                                 {/* Larger Avatar */}
                                                 <div
-                                                    className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                                                    className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
                                                     style={{
                                                         background: 'var(--gradient-primary)',
                                                         color: 'var(--color-text-inverse)',
@@ -303,10 +312,7 @@ function Navbar() {
                                             <MenuButton
                                                 icon={LogOut}
                                                 label="Sign out"
-                                                onClick={() => {
-                                                    setIsUserMenuOpen(false);
-                                                    // Handle logout
-                                                }}
+                                                onClick={handleSignOut}
                                                 variant="danger"
                                             />
                                         </div>

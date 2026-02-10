@@ -12,9 +12,9 @@ import { metricsMiddleware, register } from './utils/observability/index.js';
 
 const app = express();
 
-// CORS configuration
+// CORS configuration - Allow both 5173 and 5174 for development
 app.use(cors({
-    origin: config.frontendUrl,
+    origin: ['http://localhost:5173', 'http://localhost:5174', config.frontendUrl],
     credentials: true
 }));
 

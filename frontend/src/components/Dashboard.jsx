@@ -3,18 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Loader2, Lightbulb, Palette, FileText,
     TrendingUp, Presentation, Code, DollarSign, AlertTriangle,
-    ArrowLeft, ChevronRight, PanelLeftClose, PanelLeft, Send
+    ArrowLeft, ChevronRight, PanelLeftClose, PanelLeft, Send, X, StopCircle, RefreshCw
 } from 'lucide-react';
 import { sessionApi } from '../services/api';
 import { useToast } from './shared/Toast';
 import EmptyState from './shared/EmptyState';
 import { DashboardGridSkeleton } from './shared/Skeleton';
 import CustomSelect from './shared/CustomSelect';
+import GenerationLoader from './shared/GenerationLoader';
 
 // Components
 import DashboardCard from './DashboardCard';
 import ThesisView from './Results/ThesisView';
-import BrandView from './Results/BrandView';
+//import BrandView from './Results/BrandView';
+import BrandView from './Results/brand/BrandView';
 import LandingPageWithCode from './Results/LandingPageWithCode';
 import MarketView from './Results/MarketView';
 import PitchDeckView from './Results/PitchDeckView';
@@ -40,6 +42,8 @@ const MODULES = [
 function Dashboard() {
     const { toast } = useToast();
     const ideaInputRef = useRef(null);
+    const abortControllerRef = useRef(null);
+    const generationStartTimeRef = useRef(null);
 
     // Input state
     const [ideaText, setIdeaText] = useState('');
@@ -53,6 +57,8 @@ function Dashboard() {
     const [activeModuleId, setActiveModuleId] = useState(null);
     const [error, setError] = useState(null);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [generatingModules, setGeneratingModules] = useState(new Set()); // Track individual module generation
+    const [generationTime, setGenerationTime] = useState(0);
 
     // Character counter
     const MAX_CHARS = 500;
@@ -67,7 +73,8 @@ function Dashboard() {
     // Responsive sidebar: auto-collapse on mobile, auto-expand on desktop
     useEffect(() => {
         const handleResize = () => {
-            const isMobile = window.innerWidth < 768;
+            // Use matchMedia for better consistency with CSS breakpoints
+            const isMobile = !window.matchMedia('(min-width: 768px)').matches;
             setIsSidebarCollapsed(isMobile);
         };
 
@@ -78,6 +85,16 @@ function Dashboard() {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Debug logging only when outputs change
+    useEffect(() => {
+        if (outputs) {
+            console.log('📦 Dashboard - Outputs Updated:', outputs);
+            if (activeModuleId) {
+                console.log('📋 Active Module Data:', outputs[activeModuleId]);
+            }
+        }
+    }, [outputs, activeModuleId]);
 
     // Polling logic
     useEffect(() => {
@@ -99,6 +116,20 @@ function Dashboard() {
         return () => clearInterval(pollInterval);
     }, [status, sessionId]);
 
+    // Track elapsed time during generation
+    useEffect(() => {
+        if (status !== 'creating' && status !== 'processing') return;
+
+        const timer = setInterval(() => {
+            if (generationStartTimeRef.current) {
+                const elapsed = Math.floor((Date.now() - generationStartTimeRef.current) / 1000);
+                setGenerationTime(elapsed);
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [status]);
+
     const handleGenerate = useCallback(async (e) => {
         // Prevent any default behavior
         if (e) {
@@ -114,31 +145,86 @@ function Dashboard() {
             toast.warning(`Idea is too long (${charCount}/${MAX_CHARS} characters)`);
             return;
         }
-        
+
+        // Create new AbortController for this request
+        abortControllerRef.current = new AbortController();
+        generationStartTimeRef.current = Date.now();
+        setGenerationTime(0);
+
+        // IMPORTANT: Clear old outputs and errors when starting new generation
+        setOutputs(null);
         setError(null);
         setStatus('creating');
-        
+
         try {
             console.log('Creating session with:', { ideaText: ideaText.trim(), domain, tone });
-            const createResponse = await sessionApi.create({ ideaText: ideaText.trim(), domain, tone });
+            const createResponse = await sessionApi.create(
+                { ideaText: ideaText.trim(), domain, tone },
+                { signal: abortControllerRef.current.signal }
+            );
             console.log('Session created:', createResponse);
-            
+
             setSessionId(createResponse.session_id);
             setStatus('processing');
-            toast.info('Generating your startup... This may take 20-30 seconds.');
-            
-            const genResponse = await sessionApi.generate(createResponse.session_id);
+            toast.info('Generating your startup...');
+
+            const genResponse = await sessionApi.generate(
+                createResponse.session_id,
+                { signal: abortControllerRef.current.signal }
+            );
             console.log('Generation response:', genResponse);
-            
-            if (genResponse.status === 'completed') {
+
+            // Handle completed or partial results
+            if (genResponse.status === 'completed' || genResponse.status === 'partial') {
+                console.log('Received outputs:', genResponse.data);
+                console.log('Available modules:', Object.keys(genResponse.data || {}));
                 setOutputs(genResponse.data);
                 setStatus('completed');
-                toast.success('Startup generated successfully!');
+                const elapsed = Math.round((Date.now() - generationStartTimeRef.current) / 1000);
+
+                if (genResponse.status === 'partial') {
+                    toast.success(`Generation stopped! Here's what was completed (${elapsed}s)`);
+                } else {
+                    toast.success(`Core modules generated in ${elapsed}s! Other modules available on-demand.`);
+                }
             }
         } catch (err) {
+            // Handle aborted request - show partial results if any
+            if (err.name === 'AbortError' || err.name === 'CanceledError') {
+                console.log('Request was cancelled by user');
+
+                // Try to fetch whatever was generated before cancellation
+                // Use sessionId state which was already set earlier
+                if (sessionId) {
+                    try {
+                        console.log('Fetching partial results for session:', sessionId);
+                        const partialData = await sessionApi.getOutputs(sessionId);
+                        console.log('Partial data received:', partialData);
+
+                        // Check if any modules have actual data (not null/undefined)
+                        const hasAnyData = partialData.outputs &&
+                            Object.values(partialData.outputs).some(value => value !== null && value !== undefined);
+
+                        if (hasAnyData) {
+                            console.log('Setting partial outputs:', partialData.outputs);
+                            setOutputs(partialData.outputs);
+                            setStatus('completed');
+                            toast.info('Generation stopped! Showing completed modules.');
+                        } else {
+                            console.log('No modules were completed before cancellation');
+                            toast.warning('Generation stopped too early - no modules completed yet.');
+                        }
+                    } catch (fetchErr) {
+                        console.error('Could not fetch partial results:', fetchErr);
+                        toast.error('Could not retrieve partial results.');
+                    }
+                }
+                return;
+            }
+
             console.error('Generation error:', err);
             let errorMsg = 'Failed to generate. Please try again.';
-            
+
             if (err.code === 'ERR_NETWORK') {
                 errorMsg = 'Cannot connect to server. Make sure the backend is running on http://localhost:3000';
             } else if (err.response?.status === 401) {
@@ -146,22 +232,134 @@ function Dashboard() {
             } else if (err.response?.data?.error) {
                 errorMsg = err.response.data.error;
             }
-            
+
             setError(errorMsg);
             setStatus('failed');
             toast.error(errorMsg);
+        } finally {
+            abortControllerRef.current = null;
+            generationStartTimeRef.current = null;
         }
     }, [ideaText, domain, tone, toast, charCount, isOverLimit]);
 
+    // Handle Stop Generation - Actually cancel the request AND fetch what was saved
+    const handleStopGeneration = useCallback(async () => {
+        if (abortControllerRef.current) {
+            console.log('Aborting generation request...');
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
+
+        // Don't reset sessionId - we need it to fetch results!
+        setGenerationTime(0);
+        generationStartTimeRef.current = null;
+        toast.info('Generation stopped - fetching saved modules...');
+
+        // Fetch whatever was saved in the database
+        if (sessionId) {
+            try {
+                const result = await sessionApi.getOutputs(sessionId);
+                console.log('Fetched saved outputs after stop:', result);
+
+                const hasAnyData = result.outputs &&
+                    Object.values(result.outputs).some(value => value !== null && value !== undefined);
+
+                if (hasAnyData) {
+                    setOutputs(result.outputs);
+                    setStatus('completed');
+                    toast.success('Loaded saved modules successfully!');
+                } else {
+                    setStatus('idle');
+                    toast.warning('No modules were saved yet.');
+                }
+            } catch (err) {
+                console.error('Error fetching saved outputs:', err);
+                setStatus('idle');
+                toast.error('Could not load saved modules.');
+            }
+        } else {
+            setStatus('idle');
+        }
+    }, [sessionId, toast]);
+
+    // Handle Refresh - fetch latest outputs from database
+    const handleRefresh = useCallback(async () => {
+        if (!sessionId) {
+            toast.info('No active session to refresh');
+            return;
+        }
+
+        try {
+            toast.info('Refreshing modules...');
+            const result = await sessionApi.getOutputs(sessionId);
+            console.log('Refreshed outputs:', result);
+
+            const hasAnyData = result.outputs &&
+                Object.values(result.outputs).some(value => value !== null && value !== undefined);
+
+            if (hasAnyData) {
+                setOutputs(result.outputs);
+                setStatus('completed');
+                toast.success('Modules refreshed!');
+            } else {
+                toast.warning('No modules available yet.');
+            }
+        } catch (err) {
+            console.error('Error refreshing outputs:', err);
+            toast.error('Could not refresh modules.');
+        }
+    }, [sessionId, toast]);
+
     // Handle Module Navigation
     const openModule = (id) => {
-        if (outputs && outputs[id]) {
-            setActiveModuleId(id);
+        if (!outputs) {
+            toast.warning('Please generate a startup first');
+            return;
         }
+
+        if (!outputs[id]) {
+            console.warn(`Module data not found for: ${id}`, 'Available keys:', Object.keys(outputs));
+            toast.warning(`${MODULES.find(m => m.id === id)?.label || 'This module'} data is not available yet`);
+            return;
+        }
+
+        setActiveModuleId(id);
     };
 
     const closeModule = () => {
         setActiveModuleId(null);
+    };
+
+    // Handle individual module generation
+    const handleGenerateModule = async (moduleId) => {
+        if (!sessionId) {
+            toast.error('No session found. Please generate a startup first.');
+            return;
+        }
+
+        setGeneratingModules(prev => new Set(prev).add(moduleId));
+        toast.info(`Generating ${MODULES.find(m => m.id === moduleId)?.label}...`);
+
+        try {
+            const response = await sessionApi.regenerate(sessionId, moduleId);
+
+            // Update outputs with the new module data
+            setOutputs(prev => ({
+                ...prev,
+                [moduleId]: response.data
+            }));
+
+            toast.success(`${MODULES.find(m => m.id === moduleId)?.label} generated successfully!`);
+        } catch (err) {
+            console.error('Module generation error:', err);
+            toast.error(`Failed to generate ${MODULES.find(m => m.id === moduleId)?.label}`);
+        } finally {
+            setGeneratingModules(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(moduleId);
+                return newSet;
+            });
+        }
     };
 
     // Current Module Component
@@ -195,12 +393,12 @@ function Dashboard() {
                         initial={{ x: -320 }}
                         animate={{ x: 0 }}
                         exit={{ x: -320 }}
-                        transition={{ 
+                        transition={{
                             type: 'tween',
                             duration: 0.2,
                             ease: [0.4, 0, 0.2, 1]
                         }}
-                        className="w-80 flex-shrink-0 flex flex-col fixed md:relative z-50 md:z-auto"
+                        className="w-80 shrink-0 flex flex-col fixed md:relative z-50 md:z-auto"
                         style={{
                             height: 'calc(100vh - 3.5rem)', // Account for navbar height
                             background: 'var(--color-bg-card)',
@@ -354,33 +552,72 @@ function Dashboard() {
                                 background: 'var(--color-bg-card)',
                             }}
                         >
-                            <motion.button
-                                type="button"
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleGenerate}
-                                disabled={isLoading || !ideaText.trim() || isOverLimit}
-                                className="btn btn-primary w-full"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 'var(--space-2)',
-                                    height: '44px',
-                                }}
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 style={{ width: '18px', height: '18px' }} className="spinner" />
-                                        <span>Generating...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Send style={{ width: '18px', height: '18px' }} />
-                                        <span>Generate</span>
-                                    </>
-                                )}
-                            </motion.button>
+                            {isLoading ? (
+                                <motion.button
+                                    type="button"
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handleStopGeneration}
+                                    className="btn w-full"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 'var(--space-2)',
+                                        height: '44px',
+                                        background: 'var(--color-error)',
+                                        color: 'white',
+                                        border: 'none',
+                                    }}
+                                >
+                                    <StopCircle style={{ width: '18px', height: '18px' }} />
+                                    <span>Stop Generation</span>
+                                </motion.button>
+                            ) : (
+                                <motion.button
+                                    type="button"
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handleGenerate}
+                                    disabled={isLoading || !ideaText.trim() || isOverLimit}
+                                    className="btn btn-primary w-full"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 'var(--space-2)',
+                                        height: '44px',
+                                    }}
+                                >
+                                    <Send style={{ width: '18px', height: '18px' }} />
+                                    <span>Generate</span>
+                                </motion.button>
+                            )}
+
+                            {/* Refresh Button - show when there's a session */}
+                            {sessionId && !isLoading && (
+                                <motion.button
+                                    type="button"
+                                    whileHover={{ scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={handleRefresh}
+                                    className="btn w-full"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 'var(--space-2)',
+                                        height: '40px',
+                                        marginTop: 'var(--space-2)',
+                                        background: 'var(--color-bg-secondary)',
+                                        color: 'var(--color-text-primary)',
+                                        border: '1px solid var(--color-border)',
+                                    }}
+                                >
+                                    <RefreshCw style={{ width: '16px', height: '16px' }} />
+                                    <span>Refresh Modules</span>
+                                </motion.button>
+                            )}
                         </div>
                     </motion.aside>
                 )}
@@ -493,17 +730,10 @@ function Dashboard() {
                 {/* 2. LOADING STATE */}
                 {
                     isLoading && (
-                        <div className="h-full overflow-y-auto p-8">
-                            <div className="text-center mb-8">
-                                <Loader2 className="w-12 h-12 mx-auto mb-4 spinner" style={{ color: 'var(--color-primary)' }} />
-                                <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                                    Generating Your Startup...
-                                </h3>
-                                <p style={{ color: 'var(--color-text-secondary)' }}>
-                                    Analyzing market trends, creating brand identity, and building your pitch deck.
-                                </p>
-                            </div>
-                            <DashboardGridSkeleton count={8} />
+                        <div className="dashboard-loading-overlay">
+                            <GenerationLoader
+                                elapsedTime={generationTime}
+                            />
                         </div>
                     )
                 }
@@ -511,23 +741,58 @@ function Dashboard() {
                 {/* 3. GRID PREVIEW STATE */}
                 {
                     outputs && !activeModuleId && (
-                        <div className="h-full overflow-y-auto p-8">
-                            <header className="mb-8">
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Startup Workspace</h2>
-                                <p className="text-slate-500">Explore your AI-generated business assets</p>
-                            </header>
+                        <div className="dashboard-grid-wrapper">
+                            <motion.header 
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5 }}
+                                className="dashboard-header"
+                            >
+                                <div className="dashboard-header-gradient">
+                                    <h2 className="dashboard-title">Your Startup Workspace</h2>
+                                    <p className="dashboard-subtitle">Explore your AI-generated business assets</p>
+                                </div>
+                            </motion.header>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 pb-20">
-                                {MODULES.map((module) => (
-                                    <DashboardCard
-                                        key={module.id}
-                                        icon={module.icon}
-                                        title={module.label}
-                                        description={module.description}
-                                        onClick={() => openModule(module.id)}
-                                    />
-                                ))}
-                            </div>
+                            <motion.div 
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    visible: {
+                                        opacity: 1,
+                                        transition: {
+                                            staggerChildren: 0.08
+                                        }
+                                    }
+                                }}
+                                className="dashboard-grid"
+                            >
+                                {MODULES.map((module) => {
+                                    const hasData = outputs && outputs[module.id];
+                                    const isGenerating = generatingModules.has(module.id);
+                                    return (
+                                        <motion.div
+                                            key={module.id}
+                                            variants={{
+                                                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                                                visible: { opacity: 1, y: 0, scale: 1 }
+                                            }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+                                        >
+                                            <DashboardCard
+                                                icon={module.icon}
+                                                title={module.label}
+                                                description={module.description}
+                                                onClick={() => openModule(module.id)}
+                                                disabled={!hasData}
+                                                onGenerate={!hasData ? () => handleGenerateModule(module.id) : null}
+                                                isGenerating={isGenerating}
+                                            />
+                                        </motion.div>
+                                    );
+                                })}
+                            </motion.div>
                         </div>
                     )
                 }

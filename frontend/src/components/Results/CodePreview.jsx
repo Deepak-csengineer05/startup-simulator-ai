@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
-import { Code, Server, Database, Cloud, Clock, Layers, Copy, Check } from 'lucide-react';
+import { Code, Server, Database, Cloud, Clock, Layers, Copy, Check, RefreshCw, Download } from 'lucide-react';
 import { useState } from 'react';
+import sessionApi from '../../services/api';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -18,14 +20,23 @@ const itemVariants = {
 function CodePreview({ data }) {
     const [copiedCode, setCopiedCode] = useState(null);
 
+    const handleRegenerate = async () => {
+        try {
+            await sessionApi.regenerateSection('code_preview');
+            window.location.reload();
+        } catch (error) {
+            console.error('Failed to regenerate:', error);
+        }
+    };
+
     if (!data) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Code className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-                <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+                <Code className="w-12 h-12 text-(--color-text-muted) mb-4" />
+                <p className="text-(--color-text-secondary) text-lg font-medium mb-2">
                     No code preview available
                 </p>
-                <p className="text-[var(--color-text-tertiary)] text-sm">
+                <p className="text-(--color-text-tertiary) text-sm">
                     Generate a startup concept to see technical blueprint
                 </p>
             </div>
@@ -54,58 +65,68 @@ function CodePreview({ data }) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-4xl mx-auto space-y-6"
+            className="results-container"
         >
-            {/* Header */}
-            <motion.div variants={itemVariants} className="text-center">
-                <h2 className="h2 mb-2">
-                    Technical Blueprint
-                </h2>
-                <p className="text-[var(--color-text-secondary)]">
-                    Recommended tech stack, architecture, and implementation
-                </p>
+            {/* Hero */}
+            <motion.div variants={itemVariants} className="results-hero">
+                <motion.div
+                    animate={{
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="results-icon"
+                >
+                    <Code size={48} />
+                </motion.div>
+                <h1 className="results-title">Technical Blueprint</h1>
+                <p className="results-subtitle">Recommended tech stack, architecture, and implementation</p>
+                <div className="results-actions">
+                    <button onClick={handleRegenerate} className="results-btn results-btn-primary">
+                        <RefreshCw size={18} />
+                        Regenerate
+                    </button>
+                </div>
             </motion.div>
 
             {/* Tech Stack */}
             {data.tech_stack && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-primary-bg)]">
-                            <Layers className="w-5 h-5 text-[var(--color-primary)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon" style={{ background: 'rgba(0, 210, 255, 0.2)' }}>
+                            <Layers size={24} style={{ color: '#00D2FF' }} />
                         </div>
-                        <h3 className="h4">
-                            Recommended Tech Stack
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">Recommended Tech Stack</h2>
+                            <p className="results-section-subtitle">Best tools and frameworks for your MVP</p>
+                        </div>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+
+                    <div className="mvp-stack-grid">
                         {['frontend', 'backend', 'database', 'hosting'].map((key) => {
                             const item = data.tech_stack[key];
                             if (!item) return null;
-                            const Icon = stackIcons[key];
+                            const Icon = { frontend: Code, backend: Server, database: Database, hosting: Cloud }[key];
 
                             return (
                                 <motion.div
                                     key={key}
-                                    className="rounded-xl bg-[var(--color-bg-secondary)] p-4"
-                                    whileHover={{ scale: 1.02 }}
+                                    className="mvp-stack-card"
+                                    whileHover={{ y: -3 }}
                                 >
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="rounded-lg p-2 bg-[var(--color-primary)] text-white">
-                                            <Icon className="w-4 h-4" />
-                                        </div>
-                                        <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-muted)]">
-                                            {key}
-                                        </span>
+                                    <div className="mvp-stack-icon" style={{ background: `rgba(${key === 'frontend' ? '0, 210, 255' : key === 'backend' ? '142, 45, 226' : key === 'database' ? '34, 197, 94' : '251, 191, 36'}, 0.2)` }}>
+                                        <Icon size={20} style={{ color: key === 'frontend' ? '#00D2FF' : key === 'backend' ? 'rgb(142, 45, 226)' : key === 'database' ? 'rgb(34, 197, 94)' : 'rgb(251, 191, 36)' }} />
                                     </div>
-                                    <h4
-                                        className="mb-1 font-semibold text-[var(--color-text-primary)]"
-                                    >
+                                    <div className="mvp-stack-label">{key}</div>
+                                    <h4 className="mvp-stack-name">
                                         {item.framework || item.type || item.platform}
                                     </h4>
                                     {item.reasoning && (
-                                        <p
-                                            className="text-sm text-[var(--color-text-secondary)]"
-                                        >
+                                        <p className="mvp-stack-reasoning">
                                             {item.reasoning}
                                         </p>
                                     )}
@@ -116,20 +137,11 @@ function CodePreview({ data }) {
 
                     {/* Additional Tools */}
                     {data.tech_stack.additional && data.tech_stack.additional.length > 0 && (
-                        <div className="mt-4">
-                            <span
-                                className="text-sm font-medium text-[var(--color-text-muted)]"
-                            >
-                                Additional Tools:
-                            </span>
-                            <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="mvp-additional-tools">
+                            <span className="mvp-additional-label">Additional Tools:</span>
+                            <div className="mvp-tools-list">
                                 {data.tech_stack.additional.map((tool, i) => (
-                                    <span
-                                        key={i}
-                                        className="badge badge-primary"
-                                    >
-                                        {tool}
-                                    </span>
+                                    <span key={i} className="mvp-tool-badge">{tool}</span>
                                 ))}
                             </div>
                         </div>
@@ -139,52 +151,32 @@ function CodePreview({ data }) {
 
             {/* Architecture */}
             {data.architecture && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-secondary-bg)]">
-                            <Server className="w-5 h-5 text-[var(--color-secondary)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon" style={{ background: 'rgba(142, 45, 226, 0.2)' }}>
+                            <Server size={24} style={{ color: 'rgb(142, 45, 226)' }} />
                         </div>
-                        <h3 className="h4">
-                            System Architecture
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">System Architecture</h2>
+                            <p className="results-section-subtitle">How components work together</p>
+                        </div>
                     </div>
 
                     {data.architecture.description && (
-                        <p
-                            className="mb-4 text-[var(--color-text-secondary)]"
-                        >
-                            {data.architecture.description}
-                        </p>
+                        <p className="mvp-arch-description">{data.architecture.description}</p>
                     )}
 
                     {data.architecture.components && (
-                        <div className="grid md:grid-cols-3 gap-4 mb-4">
+                        <div className="mvp-components-grid">
                             {data.architecture.components.map((comp, i) => (
-                                <div
-                                    key={i}
-                                    className="rounded-xl bg-[var(--color-bg-secondary)] p-4 text-center"
-                                >
-                                    <div
-                                        className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary)] text-white"
-                                    >
-                                        <Layers className="w-5 h-5" />
+                                <div key={i} className="mvp-component-card">
+                                    <div className="mvp-component-icon">
+                                        <Layers size={20} />
                                     </div>
-                                    <h4
-                                        className="mb-1 font-semibold text-[var(--color-text-primary)]"
-                                    >
-                                        {comp.name}
-                                    </h4>
-                                    <p
-                                        className="mb-2 text-sm text-[var(--color-text-secondary)]"
-                                    >
-                                        {comp.purpose}
-                                    </p>
+                                    <h4 className="mvp-component-name">{comp.name}</h4>
+                                    <p className="mvp-component-purpose">{comp.purpose}</p>
                                     {comp.tech && (
-                                        <span
-                                            className="badge badge-primary"
-                                        >
-                                            {comp.tech}
-                                        </span>
+                                        <span className="mvp-component-tech">{comp.tech}</span>
                                     )}
                                 </div>
                             ))}
@@ -192,9 +184,7 @@ function CodePreview({ data }) {
                     )}
 
                     {data.architecture.diagram_description && (
-                        <div
-                            className="code-block whitespace-pre-wrap"
-                        >
+                        <div className="mvp-diagram">
                             {data.architecture.diagram_description}
                         </div>
                     )}
@@ -203,58 +193,48 @@ function CodePreview({ data }) {
 
             {/* Code Samples */}
             {data.code_samples && data.code_samples.length > 0 && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-success-bg)]">
-                            <Code className="w-5 h-5 text-[var(--color-success)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon" style={{ background: 'rgba(34, 197, 94, 0.2)' }}>
+                            <Code size={24} style={{ color: 'rgb(34, 197, 94)' }} />
                         </div>
-                        <h3 className="h4">
-                            Code Samples
-                        </h3>
+                        <div>
+                            <h2 className="results-section-title">Code Samples</h2>
+                            <p className="results-section-subtitle">Example implementations to get started</p>
+                        </div>
                     </div>
-                    <div className="space-y-4">
+
+                    <div className="mvp-code-samples">
                         {data.code_samples.map((sample, index) => (
-                            <div
-                                key={index}
-                                className="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]"
-                            >
-                                <div
-                                    className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-2"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span
-                                            className="badge badge-primary"
-                                        >
+                            <div key={index} className="mvp-code-block">
+                                <div className="mvp-code-header">
+                                    <div className="mvp-code-title-group">
+                                        <span className="mvp-code-language">
                                             {sample.language || 'code'}
                                         </span>
-                                        <span
-                                            className="font-medium text-[var(--color-text-primary)]"
-                                        >
-                                            {sample.title}
-                                        </span>
+                                        <span className="mvp-code-title">{sample.title}</span>
                                     </div>
                                     <motion.button
-                                        onClick={() => copyToClipboard(sample.code, index)}
-                                        className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]"
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        aria-label="Copy code to clipboard"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(sample.code);
+                                            setCopiedCode(index);
+                                            setTimeout(() => setCopiedCode(null), 2000);
+                                        }}
+                                        className="mvp-copy-btn"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
                                         {copiedCode === index ? (
-                                            <Check className="w-4 h-4 text-[var(--color-success)]" />
+                                            <><Check size={16} /> Copied</>
                                         ) : (
-                                            <Copy className="w-4 h-4" />
+                                            <><Copy size={16} /> Copy</>
                                         )}
                                     </motion.button>
                                 </div>
                                 {sample.description && (
-                                    <p
-                                        className="border-b border-[var(--color-border)] px-4 py-2 text-sm text-[var(--color-text-secondary)]"
-                                    >
-                                        {sample.description}
-                                    </p>
+                                    <p className="mvp-code-description">{sample.description}</p>
                                 )}
-                                <pre className="code-block rounded-none border-0">
+                                <pre className="mvp-code-content">
                                     <code>{sample.code}</code>
                                 </pre>
                             </div>
@@ -265,63 +245,48 @@ function CodePreview({ data }) {
 
             {/* Development Timeline */}
             {data.timeline && (
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-warning-bg)]">
-                            <Clock className="w-5 h-5 text-[var(--color-warning)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon" style={{ background: 'rgba(251, 191, 36, 0.2)' }}>
+                            <Clock size={24} style={{ color: 'rgb(251, 191, 36)' }} />
                         </div>
-                        <h3 className="h4">
-                            Development Timeline
-                        </h3>
-                        {data.timeline.total_weeks && (
-                            <span
-                                className="badge badge-primary"
-                            >
-                                ~{data.timeline.total_weeks} weeks total
-                            </span>
-                        )}
+                        <div className="mvp-timeline-header-group">
+                            <div>
+                                <h2 className="results-section-title">Development Timeline</h2>
+                                <p className="results-section-subtitle">Estimated phases and deliverables</p>
+                            </div>
+                            {data.timeline.total_weeks && (
+                                <span className="mvp-timeline-badge">
+                                    ~{data.timeline.total_weeks} weeks total
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <div className="space-y-4">
+
+                    <div className="mvp-timeline">
                         {data.timeline.phases?.map((phase, index) => (
                             <motion.div
                                 key={index}
-                                className="flex gap-4"
+                                className="mvp-timeline-phase"
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1 }}
                             >
-                                <div className="flex flex-col items-center">
-                                    <div
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-primary)] text-white font-bold"
-                                    >
-                                        {index + 1}
-                                    </div>
+                                <div className="mvp-timeline-indicator">
+                                    <div className="mvp-timeline-number">{index + 1}</div>
                                     {index < data.timeline.phases.length - 1 && (
-                                        <div
-                                            className="my-2 w-0.5 flex-1 bg-[var(--color-border)]"
-                                        />
+                                        <div className="mvp-timeline-line" />
                                     )}
                                 </div>
-                                <div className="flex-1 pb-4">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h4
-                                            className="font-semibold text-[var(--color-text-primary)]"
-                                        >
-                                            {phase.phase}
-                                        </h4>
-                                        <span
-                                            className="badge badge-primary"
-                                        >
-                                            Weeks {phase.weeks}
-                                        </span>
+                                <div className="mvp-timeline-content">
+                                    <div className="mvp-phase-header">
+                                        <h4 className="mvp-phase-name">{phase.phase}</h4>
+                                        <span className="mvp-phase-badge">Weeks {phase.weeks}</span>
                                     </div>
-                                    <ul className="space-y-1">
+                                    <ul className="mvp-deliverables-list">
                                         {phase.deliverables?.map((item, i) => (
-                                            <li
-                                                key={i}
-                                                className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]"
-                                            >
-                                                <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-primary)]" />
+                                            <li key={i} className="mvp-deliverable-item">
+                                                <div className="mvp-deliverable-dot" />
                                                 {item}
                                             </li>
                                         ))}

@@ -6,7 +6,7 @@ function Layout({ children }) {
             className="min-h-screen"
             style={{ background: 'var(--color-bg-primary)' }}
         >
-            <Navbar />
+            <Navbar/>
             <main>
                 {children}
             </main>

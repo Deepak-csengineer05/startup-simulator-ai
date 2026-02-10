@@ -4,6 +4,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/shared/Toast';
 import Login from './components/Login';
+import Signup from './components/Signup';
+import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import Layout from './components/Layout';
 import { Loader2 } from 'lucide-react';
@@ -58,14 +60,36 @@ function PublicRoute({ children }) {
 function AppRoutes() {
     return (
         <Routes>
-            {/* Dashboard */}
-            <Route path="/dashboard" element={
-                <Layout>
-                    <Dashboard />
-                </Layout>
+            {/* Public Routes */}
+            <Route path="/login" element={
+                <PublicRoute>
+                    <Login />
+                </PublicRoute>
             } />
 
-            {/* Fallback */}
+            <Route path="/signup" element={
+                <PublicRoute>
+                    <Signup />
+                </PublicRoute>
+            } />
+
+            <Route path="/forgot-password" element={
+                <PublicRoute>
+                    <ForgotPassword />
+                </PublicRoute>
+            } />
+
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+                <ProtectedRoute>
+                    <Layout>
+                        <Dashboard />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+
+            {/* Fallback - redirect to dashboard (will redirect to login if not authenticated) */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
     );

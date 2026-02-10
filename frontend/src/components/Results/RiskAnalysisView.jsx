@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { AlertTriangle, ShieldCheck, TrendingUp, RefreshCw, Download } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, TrendingUp, RefreshCw, Download, Shield, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { sessionApi } from '../../services/api';
 import { useToast } from '../shared/Toast';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
 };
 
 const itemVariants = {
@@ -21,11 +22,11 @@ function RiskAnalysisView({ data: initialData, sessionId, onRegenerate }) {
 
     if (!data) return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-            <AlertTriangle className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-            <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+            <AlertTriangle className="w-12 h-12 text-(--color-text-muted) mb-4" />
+            <p className="text-(--color-text-secondary) text-lg font-medium mb-2">
                 No risk analysis available
             </p>
-            <p className="text-[var(--color-text-tertiary)] text-sm">
+            <p className="text-(--color-text-tertiary) text-sm">
                 Generate a startup concept to see risk analysis
             </p>
         </div>
@@ -37,23 +38,13 @@ function RiskAnalysisView({ data: initialData, sessionId, onRegenerate }) {
             const result = await sessionApi.regenerate(sessionId, 'risk_analysis');
             setData(result.data);
             if (onRegenerate) onRegenerate(result.data);
+            toast.success('Risk analysis regenerated!');
         } catch (error) {
             console.error('Failed to regenerate:', error);
+            toast.error('Failed to regenerate analysis');
         } finally {
             setIsRegenerating(false);
         }
-    };
-
-    const getScoreColor = (score) => {
-        if (score >= 80) return 'text-[var(--color-success)]';
-        if (score >= 50) return 'text-[var(--color-warning)]';
-        return 'text-[var(--color-error)]';
-    };
-
-    const getScoreBg = (score) => {
-        if (score >= 80) return 'bg-[var(--color-success)]';
-        if (score >= 50) return 'bg-[var(--color-warning)]';
-        return 'bg-[var(--color-error)]';
     };
 
     return (
@@ -61,31 +52,71 @@ function RiskAnalysisView({ data: initialData, sessionId, onRegenerate }) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-4xl mx-auto space-y-6"
+            className="results-container"
         >
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="h2 mb-2">
-                        Risk & Success Probability
-                    </h2>
-                    <p className="text-[var(--color-text-secondary)]">
-                        Critical failure analysis and market timing verdict
+            {/* Hero with Score */}
+            <motion.div variants={itemVariants} className="results-hero">
+                <motion.div
+                    className="results-hero-icon"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                >
+                    <ShieldCheck className="w-10 h-10 text-white" />
+                </motion.div>
+
+                <h1 className="results-hero-title">
+                    Risk & Success Analysis
+                </h1>
+
+                <p className="results-hero-subtitle" style={{ marginBottom: 'var(--space-8)' }}>
+                    Critical failure points and market timing assessment
+                </p>
+
+                {/* Risk Score Circle */}
+                <div className="risk-score-container">
+                    <div className="risk-score-circle">
+                        <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="80" cy="80" r="70" fill="transparent" stroke="rgba(255,255,255,0.2)" strokeWidth="12" />
+                            <motion.circle
+                                cx="80" cy="80" r="70" fill="transparent" stroke="white" strokeWidth="12"
+                                strokeDasharray={439.82}
+                                initial={{ strokeDashoffset: 439.82 }}
+                                animate={{ strokeDashoffset: 439.82 - (439.82 * (data.risk_score?.score || 0)) / 100 }}
+                                transition={{ duration: 1.5, ease: 'easeOut' }}
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                        <div className="risk-score-value">
+                            <span className="risk-score-percent">{data.risk_score?.score || 0}%</span>
+                            <span className="risk-score-label">Success</span>
+                        </div>
+                    </div>
+
+                    <span className={`risk-score-rating ${
+                        data.risk_score?.score >= 80 ? 'high' : data.risk_score?.score >= 50 ? 'medium' : 'low'
+                    }`}>
+                        {data.risk_score?.rating || 'UNKNOWN'}
+                    </span>
+
+                    <p className="risk-score-justification">
+                        {data.risk_score?.justification}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+
+                <div className="results-hero-actions">
                     <button
                         onClick={handleRegenerate}
                         disabled={isRegenerating}
-                        className="btn btn-secondary text-sm inline-flex items-center gap-2"
-                        aria-label="Regenerate risk analysis"
+                        className="results-btn results-btn-primary"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-5 w-5 ${isRegenerating ? 'animate-spin' : ''}`} />
                         <span>{isRegenerating ? 'Regenerating...' : 'Regenerate'}</span>
                     </button>
+
                     <button
                         onClick={() => {
-                            const text = `RISK SCORE: ${data.risk_score?.score}% - ${data.risk_score?.rating}\n${data.risk_score?.justification}\n\nCRITICAL RISKS:\n${data.critical_risks?.map(r => `- ${r.risk} (${r.severity}): ${r.impact}\n  Mitigation: ${r.mitigation}`).join('\n\n')}\n\nMARKET TIMING:\n${data.market_timing?.verdict}\n${data.market_timing?.reasoning}`;
+                            const text = `RISK SCORE: ${data.risk_score?.score}% - ${data.risk_score?.rating}\n${data.risk_score?.justification}`;
                             const blob = new Blob([text], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -93,119 +124,117 @@ function RiskAnalysisView({ data: initialData, sessionId, onRegenerate }) {
                             a.download = 'risk-analysis.txt';
                             a.click();
                             URL.revokeObjectURL(url);
-                            toast.success('Risk analysis exported!');
+                            toast.success('Exported!');
                         }}
-                        className="btn btn-secondary text-sm inline-flex items-center gap-2"
-                        aria-label="Export risk analysis as text file"
+                        className="results-btn results-btn-secondary"
                     >
-                        <Download className="w-4 h-4" />
+                        <Download className="h-5 w-5" />
                         <span>Export</span>
                     </button>
                 </div>
-            </div>
-
-            {/* Score Card */}
-            <motion.div variants={itemVariants} className="card flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                <div className="relative w-32 h-32 flex-shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            fill="transparent"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            className="text-[var(--color-border)]"
-                        />
-                        <circle
-                            cx="64"
-                            cy="64"
-                            r="56"
-                            fill="transparent"
-                            stroke="currentColor"
-                            strokeWidth="12"
-                            strokeDasharray={351.86}
-                            strokeDashoffset={351.86 - (351.86 * data.risk_score?.score) / 100}
-                            className={`${getScoreColor(data.risk_score?.score)} transition-all duration-1000 ease-out`}
-                            strokeLinecap="round"
-                        />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={`text-3xl font-bold ${getScoreColor(data.risk_score?.score)}`}>
-                            {data.risk_score?.score}%
-                        </span>
-                        <span className="text-xs uppercase font-semibold text-[var(--color-text-muted)]">Success</span>
-                    </div>
-                </div>
-                <div>
-                    <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-[var(--color-text-primary)]">
-                            {data.risk_score?.rating}
-                        </h3>
-                        <span className={`badge text-white ${getScoreBg(data.risk_score?.score)}`}>
-                            VERDICT
-                        </span>
-                    </div>
-                    <p className="leading-relaxed text-[var(--color-text-secondary)]">
-                        {data.risk_score?.justification}
-                    </p>
-                </div>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-                {/* Critical Risks */}
-                <motion.div variants={itemVariants} className="card space-y-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 rounded-lg bg-[var(--color-error-bg)]">
-                            <AlertTriangle className="w-5 h-5 text-[var(--color-error)]" />
+            {/* Critical Risks */}
+            {data.critical_risks && data.critical_risks.length > 0 && (
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <AlertTriangle />
                         </div>
-                        <h3 className="h4">Critical Failure Modes</h3>
+                        <div>
+                            <h2 className="results-section-title">Critical Risk Factors</h2>
+                            <p className="results-section-subtitle">{data.critical_risks.length} key risks identified</p>
+                        </div>
                     </div>
-                    {data.critical_risks?.map((risk, idx) => (
-                        <div key={idx} className="rounded-xl bg-[var(--color-bg-secondary)] p-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-bold text-[var(--color-text-primary)]">{risk.risk}</h4>
-                                <span
-                                    className={`badge ${
-                                        risk.severity === 'High'
-                                            ? 'badge-error'
-                                            : risk.severity === 'Medium'
-                                                ? 'badge-warning'
-                                                : 'badge-primary'
-                                    }`}
-                                >
-                                    {risk.severity} Sev
-                                </span>
-                            </div>
-                            <p className="mb-3 text-sm text-[var(--color-text-secondary)]">
-                                {risk.impact}
-                            </p>
-                            <div className="flex items-start gap-2 rounded bg-[var(--color-primary-bg)] p-2 text-sm text-[var(--color-text-secondary)]">
-                                <ShieldCheck className="mt-0.5 w-4 h-4 flex-shrink-0 text-[var(--color-primary)]" />
-                                <span><span className="font-semibold">Mitigation:</span> {risk.mitigation}</span>
-                            </div>
-                        </div>
-                    ))}
-                </motion.div>
 
-                {/* Market Timing */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-info-bg)]">
-                            <TrendingUp className="w-5 h-5 text-[var(--color-info)]" />
-                        </div>
-                        <h3 className="h4">Market Timing</h3>
-                    </div>
-                    <div className="rounded-2xl border border-[var(--color-border)] p-6 text-center [background:var(--gradient-card)]">
-                        <h4 className="mb-2 text-2xl font-bold text-[var(--color-primary)]">
-                            {data.market_timing?.verdict}
-                        </h4>
-                        <p className="text-[var(--color-text-secondary)]">
-                            {data.market_timing?.reasoning}
-                        </p>
+                    <div className="risk-list">
+                        {data.critical_risks.map((risk, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 * index }}
+                                className={`risk-card severity-${risk.severity?.toLowerCase() || 'medium'}`}
+                            >
+                                <div className="risk-card-header">
+                                    <div className="risk-card-title-group">
+                                        <span className={`risk-severity-badge ${risk.severity?.toLowerCase() || 'medium'}`}>
+                                            {risk.severity}
+                                        </span>
+                                        <h4 className="risk-card-title">{risk.risk}</h4>
+                                    </div>
+                                    <div className="risk-card-number">{index + 1}</div>
+                                </div>
+
+                                <div className="risk-card-content">
+                                    <div className="risk-impact">
+                                        <p className="risk-label">Impact</p>
+                                        <p className="risk-text">{risk.impact}</p>
+                                    </div>
+
+                                    <div className="risk-mitigation">
+                                        <div className="risk-mitigation-header">
+                                            <Shield className="w-4 h-4" />
+                                            <p className="risk-label">Mitigation</p>
+                                        </div>
+                                        <p className="risk-text">{risk.mitigation}</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </motion.div>
-            </div>
+            )}
+
+            {/* Market Timing */}
+            {data.market_timing && (
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <Clock />
+                        </div>
+                        <div>
+                            <h2 className="results-section-title">Market Timing Assessment</h2>
+                            <p className="results-section-subtitle">Is now the right time to launch?</p>
+                        </div>
+                    </div>
+
+                    <div className="market-timing-card">
+                        <span className="market-timing-verdict">{data.market_timing.verdict}</span>
+                        <p className="market-timing-text">{data.market_timing.reasoning}</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Success Factors */}
+            {data.success_factors && data.success_factors.length > 0 && (
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <TrendingUp />
+                        </div>
+                        <div>
+                            <h2 className="results-section-title">Key Success Factors</h2>
+                            <p className="results-section-subtitle">What needs to go right</p>
+                        </div>
+                    </div>
+
+                    <div className="success-factors-grid">
+                        {data.success_factors.map((factor, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.05 * index }}
+                                className="success-factor-card"
+                            >
+                                <div className="success-factor-number">{index + 1}</div>
+                                <p className="success-factor-text">{factor}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
         </motion.div>
     );
 }

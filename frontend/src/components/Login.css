@@ -1,0 +1,674 @@
+/* Cosmic Theme Authentication Pages */
+:root {
+    --cosmic-primary: #3b82f6;
+    --cosmic-bg-start: #0a0118;
+    --cosmic-bg-mid: #1e1b4b;
+    --cosmic-bg-end: #312e81;
+    --cosmic-card-bg: rgba(30, 27, 75, 0.5);
+    --cosmic-card-border: rgba(139, 92, 246, 0.4);
+    --cosmic-text: #ffffff;
+    --cosmic-text-muted: #9ca3af;
+    --cosmic-cyan: #60a5fa;
+    --cosmic-purple: #a78bfa;
+    --cosmic-pink: #ec4899;
+}
+
+/* Override global styles for cosmic pages */
+.cosmic-container * {
+    color: inherit;
+}
+
+/* Animated Cosmic Background */
+.cosmic-container {
+    height: 100vh;
+    background: radial-gradient(ellipse at top, var(--cosmic-bg-mid), var(--cosmic-bg-start)),
+        radial-gradient(ellipse at bottom, var(--cosmic-bg-end), var(--cosmic-bg-start)) !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+}
+
+/* Animated Stars */
+.cosmic-container::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, white, transparent),
+        radial-gradient(2px 2px at 60px 70px, white, transparent),
+        radial-gradient(1px 1px at 50px 50px, white, transparent),
+        radial-gradient(1px 1px at 130px 80px, white, transparent),
+        radial-gradient(2px 2px at 90px 10px, white, transparent);
+    background-size: 200px 200px;
+    animation: stars-drift 100s linear infinite;
+    opacity: 0.5;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Animated Glow Orbs */
+.cosmic-container::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
+    animation: orbs-float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+@keyframes stars-drift {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-200px);
+    }
+}
+
+@keyframes orbs-float {
+
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(30px, -30px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+/* Header with Logo */
+.cosmic-header {
+    padding: 20px 48px;
+    position: relative;
+    z-index: 100;
+}
+
+.cosmic-logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--cosmic-text);
+    gap: 12px;
+}
+
+.cosmic-logo-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+    animation: logo-pulse 3s ease-in-out infinite;
+}
+
+@keyframes logo-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.9));
+    }
+}
+
+/* Main Content Container */
+.cosmic-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    z-index: 50;
+}
+
+/* Cards Wrapper */
+.cosmic-cards-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(450px, 520px));
+    gap: 32px;
+    max-width: 1100px;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Glass Card Base */
+.cosmic-card {
+    background: var(--cosmic-card-bg);
+    border: 1px solid var(--cosmic-card-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 36px 32px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.cosmic-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(139, 92, 246, 0.5),
+            transparent);
+}
+
+/* Feature Card */
+.cosmic-feature-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    height: 100%;
+}
+
+.cosmic-feature-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cosmic-text);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cosmic-arrow {
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.4);
+    animation: arrow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes arrow-pulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: translateX(0);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translateX(5px);
+    }
+}
+
+/* AI Brain Visualization Container */
+.ai-brain-container {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+/* Central Brain Icon */
+.brain-center {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent);
+    border-radius: 50%;
+    animation: brain-glow 3s ease-in-out infinite;
+}
+
+.brain-icon {
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(167, 139, 250, 0.6));
+}
+
+.brain-ai-text {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--cosmic-text);
+    margin-top: 8px;
+    letter-spacing: 2px;
+}
+
+@keyframes brain-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 60px rgba(139, 92, 246, 0.6);
+    }
+}
+
+/* Satellite Features */
+.satellite-features {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.satellite-item {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    animation: satellite-float 4s ease-in-out infinite;
+}
+
+/* Connecting Lines */
+.satellite-item::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(180deg,
+            rgba(96, 165, 250, 0.6),
+            transparent);
+    top: 50%;
+    left: 50%;
+    transform-origin: top center;
+    z-index: -1;
+}
+
+.satellite-icon {
+    font-size: 1.75rem;
+    color: var(--cosmic-cyan);
+    background: rgba(30, 27, 75, 0.8);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
+    transition: all 0.3s ease;
+}
+
+.satellite-item:hover .satellite-icon {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(96, 165, 250, 0.6);
+}
+
+.satellite-label {
+    font-size: 0.75rem;
+    color: var(--cosmic-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Satellite Positioning */
+.sat-top-left {
+    top: 0;
+    left: 0;
+}
+
+.sat-left {
+    top: 50%;
+    left: -10px;
+    transform: translateY(-50%);
+}
+
+.sat-bottom-left {
+    bottom: 0;
+    left: 0;
+}
+
+.sat-top-right {
+    top: 0;
+    right: 0;
+}
+
+.sat-right {
+    top: 50%;
+    right: -10px;
+    transform: translateY(-50%);
+}
+
+.sat-bottom-right {
+    bottom: 0;
+    right: 0;
+}
+
+@keyframes satellite-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Time Badge */
+.cosmic-time-badge {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 20px;
+    text-shadow: 0 0 40px rgba(96, 165, 250, 0.4);
+    animation: time-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes time-shimmer {
+
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.2);
+    }
+}
+
+/* Login/Auth Card */
+.cosmic-auth-card h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cosmic-text);
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.cosmic-auth-card .highlight {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cosmic-subtitle {
+    color: var(--cosmic-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    line-height: 1.4;
+}
+
+/* Form Styles */
+.cosmic-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cosmic-input-group {
+    position: relative;
+}
+
+.cosmic-input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(30, 27, 75, 0.5);
+    color: var(--cosmic-text);
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.cosmic-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.cosmic-input:focus {
+    border-color: var(--cosmic-cyan);
+    background: rgba(30, 27, 75, 0.6);
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+}
+
+/* Buttons */
+.cosmic-btn {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cosmic-btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+}
+
+.cosmic-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.cosmic-btn-primary:hover::before {
+    left: 100%;
+}
+
+.cosmic-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(59, 130, 246, 0.6);
+}
+
+.cosmic-btn-primary:active {
+    transform: translateY(0);
+}
+
+.cosmic-btn-icon {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.cosmic-btn-primary:hover .cosmic-btn-icon {
+    transform: translateY(-3px);
+}
+
+/* Google Button */
+.cosmic-btn-google {
+    background: white;
+    color: #333;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cosmic-btn-google:hover {
+    background: #f8f8f8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.google-icon {
+    font-size: 1.25rem;
+    color: #db4437;
+}
+
+/* Divider */
+.cosmic-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 4px 0;
+    color: var(--cosmic-text-muted);
+    font-size: 0.85rem;
+}
+
+.cosmic-divider::before,
+.cosmic-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
+}
+
+/* Footer Text */
+.cosmic-footer-text {
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 18px;
+}
+
+/* Links */
+.cosmic-link {
+    color: var(--cosmic-cyan);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.cosmic-link:hover {
+    color: var(--cosmic-purple);
+    text-decoration: underline;
+}
+
+/* Error Message */
+.cosmic-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+/* Success Message */
+.cosmic-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
+/* Loading Spinner */
+.cosmic-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .cosmic-cards-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+    }
+
+    .cosmic-feature-card {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .cosmic-header {
+        padding: 20px 24px;
+    }
+
+    .cosmic-card {
+        padding: 32px 24px;
+    }
+
+    .cosmic-auth-card h1 {
+        font-size: 2rem;
+    }
+
+    .cosmic-time-badge {
+        font-size: 2rem;
+    }
+
+    .ai-brain-container {
+        width: 220px;
+        height: 220px;
+    }
+
+    .brain-icon {
+        font-size: 2.5rem;
+    }
+
+    .satellite-icon {
+        font-size: 1.25rem;
+        padding: 8px;
+    }
+
+    .satellite-label {
+        font-size: 0.65rem;
+    }
+}
+
+/* Single Card Layout (for Forgot Password) */
+.cosmic-single-card {
+    max-width: 480px;
+    margin: 0 auto;
+}

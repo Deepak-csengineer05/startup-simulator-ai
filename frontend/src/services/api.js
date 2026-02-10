@@ -62,18 +62,18 @@ export const authApi = {
 // Session API functions
 export const sessionApi = {
     // Create a new session
-    create: async (data) => {
+    create: async (data, config = {}) => {
         const response = await api.post('/api/sessions', {
             idea_text: data.ideaText,
             domain_hint: data.domain,
             tone_preference: data.tone
-        });
+        }, config);
         return response.data;
     },
 
     // Generate all outputs for a session
-    generate: async (sessionId) => {
-        const response = await api.post(`/api/sessions/${sessionId}/generate`);
+    generate: async (sessionId, config = {}) => {
+        const response = await api.post(`/api/sessions/${sessionId}/generate`, {}, config);
         return response.data;
     },
 

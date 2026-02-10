@@ -17,39 +17,17 @@ export function AuthProvider({ children }) {
         try {
             setLoading(true);
 
-            // Try to get from localStorage first
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-                setLoading(false);
-                return;
-            }
-
-            // Then try backend
+            // Check if user is authenticated via backend
             const response = await api.get('/auth/me');
             const userData = response.data.user;
             setUser(userData);
             localStorage.setItem('user', JSON.stringify(userData));
             setError(null);
         } catch (err) {
-            // Only use demo user if VITE_DEMO_MODE is enabled
-            const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+            // Clear any stale user data
+            setUser(null);
+            localStorage.removeItem('user');
             
-            if (isDemoMode) {
-                const demoUser = {
-                    name: 'Demo User',
-                    email: 'demo@startup.ai',
-                    avatar: null,
-                    role: 'Product Manager',
-                    company: 'Startup Simulator AI',
-                    bio: 'Passionate entrepreneur building the next big thing',
-                    joinDate: 'January 2024',
-                    plan: 'Free',
-                };
-                setUser(demoUser);
-                localStorage.setItem('user', JSON.stringify(demoUser));
-            }
-
             // 401 is expected when not logged in
             if (err.response?.status !== 401) {
                 console.error('Auth check failed:', err);
@@ -94,9 +72,10 @@ export function AuthProvider({ children }) {
 
     const logout = async () => {
         try {
-            await api.post('/auth/logout');
+            await authApi.logout();
             setUser(null);
-            window.location.href = '/';
+            localStorage.removeItem('user');
+            window.location.href = '/login';
         } catch (err) {
             console.error('Logout failed:', err);
             // Still clear user on error

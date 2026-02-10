@@ -87,7 +87,7 @@ function Profile() {
                     {/* Avatar Section */}
                     <div className="flex items-start gap-6 mb-8">
                         <div
-                            className="w-24 h-24 rounded-full flex items-center justify-center flex-shrink-0"
+                            className="w-24 h-24 rounded-full flex items-center justify-center shrink-0"
                             style={{
                                 background: 'var(--gradient-primary)',
                                 color: 'white',

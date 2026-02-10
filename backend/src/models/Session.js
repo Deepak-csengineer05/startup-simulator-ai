@@ -25,7 +25,7 @@ const sessionSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['created', 'processing', 'completed', 'failed'],
+        enum: ['created', 'processing', 'completed', 'partial', 'failed'],
         default: 'created',
         index: true
     },
@@ -47,6 +47,14 @@ const sessionSchema = new mongoose.Schema({
             default: null
         },
         pitch_deck: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null
+        },
+        business_model: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null
+        },
+        risk_analysis: {
             type: mongoose.Schema.Types.Mixed,
             default: null
         },

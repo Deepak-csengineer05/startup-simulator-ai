@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { DollarSign, PieChart, Users, Share2, RefreshCw, Download } from 'lucide-react';
+import { DollarSign, PieChart, Users, Share2, RefreshCw, Download, TrendingUp, Package } from 'lucide-react';
 import { useState } from 'react';
 import { sessionApi } from '../../services/api';
 import { useToast } from '../shared/Toast';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
 };
 
 const itemVariants = {
@@ -21,11 +22,11 @@ function BusinessModelView({ data: initialData, sessionId, onRegenerate }) {
 
     if (!data) return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-            <DollarSign className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-            <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+            <DollarSign className="w-12 h-12 text-(--color-text-muted) mb-4" />
+            <p className="text-(--color-text-secondary) text-lg font-medium mb-2">
                 No business model available
             </p>
-            <p className="text-[var(--color-text-tertiary)] text-sm">
+            <p className="text-(--color-text-tertiary) text-sm">
                 Generate a startup concept to see business model
             </p>
         </div>
@@ -37,8 +38,10 @@ function BusinessModelView({ data: initialData, sessionId, onRegenerate }) {
             const result = await sessionApi.regenerate(sessionId, 'business_model');
             setData(result.data);
             if (onRegenerate) onRegenerate(result.data);
+            toast.success('Business model regenerated!');
         } catch (error) {
             console.error('Failed to regenerate:', error);
+            toast.error('Failed to regenerate');
         } finally {
             setIsRegenerating(false);
         }
@@ -49,31 +52,40 @@ function BusinessModelView({ data: initialData, sessionId, onRegenerate }) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-4xl mx-auto space-y-6"
+            className="results-container"
         >
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="h2 mb-2">
-                        Business Model
-                    </h2>
-                    <p className="text-[var(--color-text-secondary)]">
-                        Revenue streams, cost structures, and operational logistics
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
+            {/* Hero Header */}
+            <motion.div variants={itemVariants} className="results-hero">
+                <motion.div
+                    className="results-hero-icon"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                >
+                    <DollarSign className="w-10 h-10 text-white" />
+                </motion.div>
+
+                <h1 className="results-hero-title">
+                    Business Model
+                </h1>
+
+                <p className="results-hero-subtitle">
+                    Revenue streams, costs, and operational strategy
+                </p>
+
+                <div className="results-hero-actions">
                     <button
                         onClick={handleRegenerate}
                         disabled={isRegenerating}
-                        className="btn btn-secondary text-sm inline-flex items-center gap-2"
-                        aria-label="Regenerate business model"
+                        className="results-btn results-btn-primary"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-5 w-5 ${isRegenerating ? 'animate-spin' : ''}`} />
                         <span>{isRegenerating ? 'Regenerating...' : 'Regenerate'}</span>
                     </button>
+
                     <button
                         onClick={() => {
-                            const text = `REVENUE STREAMS:\n${data.revenue_streams?.map(s => `- ${s.name} (${s.pricing_model}): ${s.description}`).join('\n')}\n\nCOST STRUCTURE:\n${data.cost_structure?.map(c => `- ${c.name} (${c.type}): ${c.description}`).join('\n')}\n\nKEY PARTNERSHIPS:\n${data.key_partnerships?.map(p => `- ${p.partner}: ${p.rationale}`).join('\n')}\n\nCHANNELS:\n${data.channels?.map(ch => `- ${ch.channel}: ${ch.description}`).join('\n')}`;
+                            const text = `REVENUE STREAMS:\n${data.revenue_streams?.map(s => `- ${s.name} (${s.pricing_model}): ${s.description}`).join('\n')}\n\nCOST STRUCTURE:\n${data.cost_structure?.map(c => `- ${c.name} (${c.type}): ${c.description}`).join('\n')}`;
                             const blob = new Blob([text], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -81,111 +93,137 @@ function BusinessModelView({ data: initialData, sessionId, onRegenerate }) {
                             a.download = 'business-model.txt';
                             a.click();
                             URL.revokeObjectURL(url);
-                            toast.success('Business model exported!');
+                            toast.success('Exported!');
                         }}
-                        className="btn btn-secondary text-sm inline-flex items-center gap-2"
-                        aria-label="Export business model as text file"
+                        className="results-btn results-btn-secondary"
                     >
-                        <Download className="w-4 h-4" />
+                        <Download className="h-5 w-5" />
                         <span>Export</span>
                     </button>
                 </div>
-            </div>
+            </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="business-model-grid">
                 {/* Revenue Streams */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-success-bg)]">
-                            <DollarSign className="w-5 h-5 text-[var(--color-success)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <TrendingUp />
                         </div>
-                        <h3 className="h4">Revenue Streams</h3>
+                        <div>
+                            <h2 className="results-section-title">Revenue Streams</h2>
+                            <p className="results-section-subtitle">How you make money</p>
+                        </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="revenue-streams-list">
                         {data.revenue_streams?.map((stream, idx) => (
-                            <div key={idx} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-medium text-[var(--color-text-primary)]">{stream.name}</h4>
-                                    <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-primary-bg)] text-[var(--color-primary)] font-medium">
-                                        {stream.pricing_model}
-                                    </span>
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 * idx }}
+                                className="revenue-stream-card"
+                            >
+                                <div className="revenue-stream-header">
+                                    <h4 className="revenue-stream-name">{stream.name}</h4>
+                                    <span className="revenue-stream-badge">{stream.pricing_model}</span>
                                 </div>
-                                <p className="text-sm text-[var(--color-text-secondary)]">{stream.description}</p>
-                            </div>
+                                <p className="revenue-stream-text">{stream.description}</p>
+                            </motion.div>
                         ))}
                     </div>
                 </motion.div>
 
                 {/* Cost Structure */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-error-bg)]">
-                            <PieChart className="w-5 h-5 text-[var(--color-error)]" />
+                <motion.div variants={itemVariants} className="results-section">
+                    <div className="results-section-header">
+                        <div className="results-section-icon">
+                            <PieChart />
                         </div>
-                        <h3 className="h4">Cost Structure</h3>
+                        <div>
+                            <h2 className="results-section-title">Cost Structure</h2>
+                            <p className="results-section-subtitle">Where money goes</p>
+                        </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="cost-structure-list">
                         {data.cost_structure?.map((cost, idx) => (
-                            <div key={idx} className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-[var(--color-bg-hover)]">
-                                <div
-                                    className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${
-                                        cost.type === 'Fixed' ? 'bg-[var(--color-warning)]' : 'bg-[var(--color-info)]'
-                                    }`}
-                                />
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="font-medium text-[var(--color-text-primary)]">{cost.name}</h4>
-                                        <span className="text-xs px-2 py-1 rounded-full bg-[var(--color-primary-bg)] text-[var(--color-primary)] font-medium">
-                                            {cost.type}
-                                        </span>
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 * idx }}
+                                className="cost-structure-card"
+                            >
+                                <div className={`cost-type-indicator ${cost.type.toLowerCase()}`} />
+                                <div className="cost-structure-content">
+                                    <div className="cost-structure-header">
+                                        <h4 className="cost-structure-name">{cost.name}</h4>
+                                        <span className="cost-structure-badge">{cost.type}</span>
                                     </div>
-                                    <p className="text-sm text-[var(--color-text-secondary)]">{cost.description}</p>
+                                    <p className="cost-structure-text">{cost.description}</p>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </motion.div>
 
                 {/* Key Partnerships */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-info-bg)]">
-                            <Users className="w-5 h-5 text-[var(--color-info)]" />
-                        </div>
-                        <h3 className="h4">Key Partnerships</h3>
-                    </div>
-                    <div className="space-y-3">
-                        {data.key_partnerships?.map((partner, idx) => (
-                            <div key={idx} className="border-l-4 border-[var(--color-primary)] bg-[var(--color-bg-secondary)] p-3">
-                                <h4 className="font-medium text-[var(--color-text-primary)]">{partner.partner}</h4>
-                                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{partner.rationale}</p>
+                {data.key_partnerships && (
+                    <motion.div variants={itemVariants} className="results-section">
+                        <div className="results-section-header">
+                            <div className="results-section-icon">
+                                <Users />
                             </div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Distribution Channels */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-secondary-bg)]">
-                            <Share2 className="w-5 h-5 text-[var(--color-secondary)]" />
+                            <div>
+                                <h2 className="results-section-title">Key Partnerships</h2>
+                                <p className="results-section-subtitle">Strategic collaborations</p>
+                            </div>
                         </div>
-                        <h3 className="h4">Channels</h3>
-                    </div>
-                    <ul className="space-y-3">
-                        {data.channels?.map((channel, idx) => (
-                            <li key={idx} className="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
-                                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-secondary-bg)] text-xs font-bold text-[var(--color-secondary)]">
-                                    {idx + 1}
-                                </span>
-                                <div>
-                                    <span className="block font-medium text-[var(--color-text-primary)]">{channel.channel}</span>
-                                    <span className="text-xs text-[var(--color-text-tertiary)]">{channel.description}</span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </motion.div>
+                        <div className="partnerships-list">
+                            {data.key_partnerships.map((partnership, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.1 * idx }}
+                                    className="partnership-card"
+                                >
+                                    <h4 className="partnership-name">{partnership.partner}</h4>
+                                    <p className="partnership-text">{partnership.rationale}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Channels */}
+                {data.channels && (
+                    <motion.div variants={itemVariants} className="results-section">
+                        <div className="results-section-header">
+                            <div className="results-section-icon">
+                                <Share2 />
+                            </div>
+                            <div>
+                                <h2 className="results-section-title">Distribution Channels</h2>
+                                <p className="results-section-subtitle">How you reach customers</p>
+                            </div>
+                        </div>
+                        <div className="channels-list">
+                            {data.channels.map((ch, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.1 * idx }}
+                                    className="channel-card"
+                                >
+                                    <h4 className="channel-name">{ch.channel}</h4>
+                                    <p className="channel-text">{ch.description}</p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </div>
         </motion.div>
     );

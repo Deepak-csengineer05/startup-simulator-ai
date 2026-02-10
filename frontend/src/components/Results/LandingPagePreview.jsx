@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { Code, Copy, Download, Eye, RefreshCw, Rocket, Shield, Zap, Users, TrendingUp, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Code, Copy, Download, Eye, RefreshCw, Rocket, Shield, Zap, Users, TrendingUp, Check, ChevronDown, ChevronUp, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { sessionApi } from '../../services/api';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -56,11 +57,11 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
         // Fallback for old format - show message
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Eye className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-                <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+                <Eye className="w-12 h-12 text-() mb-4" />
+                <p className="text-() text-lg font-medium mb-2">
                     Preview not available
                 </p>
-                <p className="text-[var(--color-text-tertiary)] text-sm mb-4">
+                <p className="text-() text-sm mb-4">
                     Please regenerate to see the new landing page format
                 </p>
                 <button onClick={handleRegenerate} className="btn btn-secondary inline-flex items-center gap-2" disabled={isRegenerating} aria-label="Regenerate landing page content">
@@ -76,37 +77,51 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="flex flex-col h-full"
+            className="results-container"
         >
-            {/* Header */}
-            <div className="card flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 className="h3">Landing Page Preview</h2>
-                <div className="flex items-center gap-2">
+            {/* Hero */}
+            <motion.div className="results-hero">
+                <motion.div
+                    animate={{
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="results-icon"
+                >
+                    <Globe size={48} />
+                </motion.div>
+                <h1 className="results-title">Landing Page Preview</h1>
+                <p className="results-subtitle">Interactive preview of your startup's landing page</p>
+                <div className="results-actions">
                     <button
                         onClick={handleRegenerate}
                         disabled={isRegenerating}
-                        className="btn btn-secondary text-sm inline-flex items-center gap-2"
-                        aria-label="Regenerate landing page content"
+                        className="results-btn results-btn-primary"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                        <span>{isRegenerating ? 'Regenerating...' : 'Regenerate'}</span>
+                        <RefreshCw className={isRegenerating ? 'animate-spin' : ''} size={18} />
+                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
                     </button>
-                    <button onClick={handleDownloadHTML} className="btn btn-secondary text-sm inline-flex items-center gap-2" aria-label="Export landing page as HTML file">
-                        <Download className="w-4 h-4" />
-                        <span>Export</span>
+                    <button onClick={handleDownloadHTML} className="results-btn results-btn-secondary">
+                        <Download size={18} />
+                        Export HTML
                     </button>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Landing Page Content */}
-            <div className="flex-1 overflow-y-auto rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)]">
+            <div className="landing-preview-wrapper">
                 {/* Hero Section */}
-                <section className="relative overflow-hidden text-white px-6 py-20 md:py-32 [background:var(--gradient-hero)]">
-                    <div className="max-w-4xl mx-auto text-center">
+                <section className="landing-hero-section">
+                    <div className="landing-hero-content">
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-4xl md:text-6xl font-bold mb-6"
+                            className="landing-hero-headline"
                         >
                             {data.hero.headline}
                         </motion.h1>
@@ -114,7 +129,7 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-xl md:text-2xl mb-8 text-white/80"
+                            className="landing-hero-subheadline"
                         >
                             {data.hero.subheadline}
                         </motion.p>
@@ -122,7 +137,7 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="btn bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]"
+                            className="landing-hero-cta"
                         >
                             {data.hero.cta_text}
                         </motion.button>
@@ -130,12 +145,10 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                 </section>
 
                 {/* Features Section */}
-                <section className="px-6 py-16 bg-[var(--color-bg-secondary)]">
-                    <div className="max-w-6xl mx-auto">
-                        <h2 className="h2 text-center mb-12">
-                            Features
-                        </h2>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <section className="landing-features-section">
+                    <div className="landing-section-container">
+                        <h2 className="landing-section-title">Features</h2>
+                        <div className="landing-features-grid">
                             {data.features?.map((feature, idx) => {
                                 const Icon = iconMap[feature.icon] || Zap;
                                 return (
@@ -144,13 +157,15 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.1 }}
-                                        className="p-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-card)]"
+                                        className="landing-feature-card"
                                     >
-                                        <Icon className="w-12 h-12 text-[var(--color-primary)] mb-4" />
-                                        <h3 className="text-xl font-semibold mb-2 text-[var(--color-text-primary)]">
+                                        <div className="landing-feature-icon">
+                                            <Icon size={28} />
+                                        </div>
+                                        <h3 className="landing-feature-title">
                                             {feature.title}
                                         </h3>
-                                        <p className="text-[var(--color-text-secondary)]">
+                                        <p className="landing-feature-description">
                                             {feature.description}
                                         </p>
                                     </motion.div>
@@ -161,43 +176,35 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                 </section>
 
                 {/* Pricing Section */}
-                <section className="px-6 py-16 bg-[var(--color-bg-card)]">
-                    <div className="max-w-5xl mx-auto">
-                        <h2 className="h2 text-center mb-12">
-                            Pricing
-                        </h2>
-                        <div className="grid md:grid-cols-2 gap-8">
+                <section className="landing-pricing-section">
+                    <div className="landing-section-container">
+                        <h2 className="landing-section-title">Pricing</h2>
+                        <div className="landing-pricing-grid">
                             {data.pricing?.tiers?.map((tier, idx) => (
                                 <motion.div
                                     key={idx}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className={`p-8 rounded-2xl border-2 ${tier.highlighted
-                                            ? 'border-[var(--color-primary)]'
-                                            : 'border-[var(--color-border)]'
-                                        } bg-[var(--color-bg-card)]`}
+                                    className={`landing-pricing-card ${tier.highlighted ? 'highlighted' : ''}`}
                                 >
-                                    <h3 className="text-2xl font-bold mb-2 text-[var(--color-text-primary)]">
-                                        {tier.name}
-                                    </h3>
-                                    <div className="mb-6">
-                                        <span className="text-4xl font-bold text-[var(--color-text-primary)]">
-                                            {tier.price}
-                                        </span>
-                                        <span className="text-[var(--color-text-tertiary)]">/{tier.period}</span>
+                                    {tier.highlighted && (
+                                        <div className="landing-pricing-badge">Most Popular</div>
+                                    )}
+                                    <h3 className="landing-pricing-name">{tier.name}</h3>
+                                    <div className="landing-pricing-price">
+                                        <span className="landing-price-amount">{tier.price}</span>
+                                        <span className="landing-price-period">/{tier.period}</span>
                                     </div>
-                                    <ul className="space-y-3 mb-8">
+                                    <ul className="landing-pricing-features">
                                         {tier.features.map((feature, fidx) => (
-                                            <li key={fidx} className="flex items-start gap-2 text-[var(--color-text-secondary)]">
-                                                <Check className="w-5 h-5 text-[var(--color-success)] mt-0.5 flex-shrink-0" />
+                                            <li key={fidx} className="landing-pricing-feature-item">
+                                                <Check size={18} />
                                                 <span>{feature}</span>
                                             </li>
                                         ))}
                                     </ul>
-                                    <button
-                                        className={`btn w-full ${tier.highlighted ? 'btn-primary' : 'btn-secondary'}`}
-                                    >
+                                    <button className="landing-pricing-cta">
                                         {tier.cta}
                                     </button>
                                 </motion.div>
@@ -207,32 +214,25 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                 </section>
 
                 {/* FAQ Section */}
-                <section className="px-6 py-16 bg-[var(--color-bg-secondary)]">
-                    <div className="max-w-3xl mx-auto">
-                        <h2 className="h2 text-center mb-12">
-                            Frequently Asked Questions
-                        </h2>
-                        <div className="space-y-4">
+                <section className="landing-faq-section">
+                    <div className="landing-section-container-narrow">
+                        <h2 className="landing-section-title">Frequently Asked Questions</h2>
+                        <div className="landing-faq-list">
                             {data.faq?.map((item, idx) => (
-                                <div
-                                    key={idx}
-                                    className="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] overflow-hidden"
-                                >
+                                <div key={idx} className="landing-faq-item">
                                     <button
                                         onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
-                                        className="w-full px-6 py-4 text-left flex items-center justify-between transition-colors hover:bg-[var(--color-bg-hover)]"
+                                        className="landing-faq-question"
                                     >
-                                        <span className="font-semibold text-[var(--color-text-primary)]">
-                                            {item.question}
-                                        </span>
+                                        <span>{item.question}</span>
                                         {openFaqIndex === idx ? (
-                                            <ChevronUp className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                            <ChevronUp size={20} />
                                         ) : (
-                                            <ChevronDown className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                            <ChevronDown size={20} />
                                         )}
                                     </button>
                                     {openFaqIndex === idx && (
-                                        <div className="px-6 py-4 border-t border-[var(--color-border)] text-[var(--color-text-secondary)]">
+                                        <div className="landing-faq-answer">
                                             {item.answer}
                                         </div>
                                     )}
@@ -243,15 +243,15 @@ function LandingPagePreviewStructured({ data: initialData, sessionId, onRegenera
                 </section>
 
                 {/* Final CTA */}
-                <section className="px-6 py-20 text-white text-center [background:var(--gradient-primary)]">
-                    <div className="max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                <section className="landing-final-cta">
+                    <div className="landing-section-container">
+                        <h2 className="landing-final-headline">
                             {data.final_cta.headline}
                         </h2>
-                        <p className="text-xl mb-8 text-white/80">
+                        <p className="landing-final-subtext">
                             {data.final_cta.subtext}
                         </p>
-                        <button className="btn bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]">
+                        <button className="landing-final-button">
                             {data.final_cta.button_text}
                         </button>
                     </div>
@@ -281,7 +281,7 @@ function generateHTMLFromStructuredData(data) {
 </head>
 <body class="bg-gray-50">
     <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+    <section class="bg-linear-to-br from-blue-600 to-purple-700 text-white">
         <div class="container mx-auto px-6 py-24 text-center">
             <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
                 ${data.hero.headline}
@@ -302,7 +302,7 @@ function generateHTMLFromStructuredData(data) {
             <div class="grid md:grid-cols-${data.features.length > 3 ? '4' : '3'} gap-8">
                 ${data.features.map(f => `
                 <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 hover:shadow-lg transition-shadow">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
+                    <div class="w-12 h-12 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
                         <span class="text-white text-xl">${f.icon === 'rocket' ? '🚀' : 
                             f.icon === 'shield' ? '🛡️' : 
                             f.icon === 'zap' ? '⚡' : 
@@ -331,7 +331,7 @@ function generateHTMLFromStructuredData(data) {
                     </div>
                     <ul class="space-y-3 mb-8">
                         ${t.features.map(ft => `<li class="flex items-start gap-2">
-                            <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-green-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                             <span>${ft}</span>
@@ -367,7 +367,7 @@ function generateHTMLFromStructuredData(data) {
     </section>
     
     <!-- Final CTA -->
-    <section class="py-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center">
+    <section class="py-20 bg-linear-to-r from-blue-600 to-purple-600 text-white text-center">
         <div class="container mx-auto px-6">
             <h2 class="text-3xl md:text-4xl font-bold mb-4">${data.final_cta.headline}</h2>
             <p class="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">${data.final_cta.subtext}</p>
@@ -478,77 +478,90 @@ function LandingPagePreviewCode({ data: initialData, sessionId, onRegenerate }) 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="flex flex-col h-full space-y-4"
+            className="results-container"
         >
-            {/* Header / Toolbar */}
-            <div className="card flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <h2 className="h3">Landing Page</h2>
-                    <div className="tab-list">
-                        <button
-                            onClick={() => setViewMode('preview')}
-                            className={`tab ${viewMode === 'preview' ? 'active' : ''}`}
-                        >
-                            <span className="flex items-center justify-center gap-2"><Eye className="w-4 h-4" /> Preview</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode('code')}
-                            className={`tab ${viewMode === 'code' ? 'active' : ''}`}
-                        >
-                            <span className="flex items-center justify-center gap-2"><Code className="w-4 h-4" /> Code</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
+            {/* Hero */}
+            <motion.div className="results-hero">
+                <motion.div
+                    animate={{
+                        rotate: [0, 360],
+                        scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                        duration: 20,
+                        repeat: Infinity,
+                        ease: "linear"
+                    }}
+                    className="results-icon"
+                >
+                    <Globe size={48} />
+                </motion.div>
+                <h1 className="results-title">Landing Page</h1>
+                <p className="results-subtitle">Preview and export your landing page code</p>
+                <div className="results-actions">
                     <button
                         onClick={handleRegenerate}
                         disabled={isRegenerating}
-                        className="btn btn-ghost text-sm"
+                        className="results-btn results-btn-primary"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                        {isRegenerating ? 'Rethinking...' : 'Regenerate'}
+                        <RefreshCw className={isRegenerating ? 'animate-spin' : ''} size={18} />
+                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
                     </button>
-                    <div className="mx-2 h-6 w-px bg-[var(--color-border)]" />
-                    <button onClick={handleDownload} className="btn btn-primary text-sm px-4">
-                        <Download className="w-4 h-4" />
+                    <button onClick={handleDownload} className="results-btn results-btn-secondary">
+                        <Download size={18} />
                         Download HTML
                     </button>
                 </div>
+            </motion.div>
+
+            {/* Tab Switcher */}
+            <div className="landing-tab-switcher">
+                <button
+                    onClick={() => setViewMode('preview')}
+                    className={`landing-tab ${viewMode === 'preview' ? 'active' : ''}`}
+                >
+                    <Eye size={18} /> Preview
+                </button>
+                <button
+                    onClick={() => setViewMode('code')}
+                    className={`landing-tab ${viewMode === 'code' ? 'active' : ''}`}
+                >
+                    <Code size={18} /> Code
+                </button>
             </div>
 
             {/* Main Content Area */}
-            <div className="relative min-h-[500px] flex-1 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+            <div className="landing-code-preview-container">
                 {viewMode === 'preview' ? (
                     <iframe
                         key={iframeKey}
                         srcDoc={iframeSrcDoc}
                         title="Landing Page Preview"
-                        className="w-full h-full bg-white"
+                        className="landing-iframe"
                         sandbox="allow-scripts allow-same-origin"
                     />
                 ) : (
-                    <div className="flex flex-col h-full">
+                    <div className="landing-code-view">
                         {/* Code Toolbar */}
-                        <div className="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-2">
-                            <div className="tab-list">
+                        <div className="landing-code-toolbar">
+                            <div className="landing-code-tabs">
                                 {['html', 'css', 'js'].map(lang => (
                                     <button
                                         key={lang}
                                         onClick={() => setActiveCodeTab(lang)}
-                                        className={`tab ${activeCodeTab === lang ? 'active' : ''}`}
+                                        className={`landing-code-tab ${activeCodeTab === lang ? 'active' : ''}`}
                                     >
-                                        <span className="font-mono text-xs uppercase">{lang}</span>
+                                        {lang.toUpperCase()}
                                     </button>
                                 ))}
                             </div>
-                            <button onClick={handleCopy} className="btn btn-ghost btn-sm">
-                                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            <button onClick={handleCopy} className="landing-code-copy-btn">
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
                                 {copied ? 'Copied' : 'Copy'}
                             </button>
                         </div>
                         {/* Code Editor Area */}
-                        <pre className="code-block flex-1 overflow-auto rounded-none border-0">
+                        <pre className="landing-code-editor">
                             <code>
                                 {activeCodeTab === 'html' && htmlContent}
                                 {activeCodeTab === 'css' && cssContent}

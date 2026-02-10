@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
-import { Target, Lightbulb, Users, Layers, Copy, Download } from 'lucide-react';
+import { useEffect } from 'react';
+import { Target, Lightbulb, Users, Layers, Copy, Download, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../shared/Toast';
+import './ResultsStyles.css';
 
 const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        transition: { staggerChildren: 0.1 }
+        transition: { staggerChildren: 0.08 }
     }
 };
 
@@ -17,14 +19,24 @@ const itemVariants = {
 
 function ThesisView({ data }) {
     const { toast } = useToast();
+    
+    // Debug logging once on mount or data change
+    useEffect(() => {
+        if (data) {
+            console.log('🎯 ThesisView - Data:', data);
+            console.log('✨ Core features:', data.core_features);
+            console.log('👥 Target users:', data.target_users);
+        }
+    }, [data]);
+    
     if (!data) {
         return (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Target className="w-12 h-12 text-[var(--color-text-muted)] mb-4" />
-                <p className="text-[var(--color-text-secondary)] text-lg font-medium mb-2">
+                <Target className="w-12 h-12 text-(--color-text-muted) mb-4" />
+                <p className="text-(--color-text-secondary) text-lg font-medium mb-2">
                     No concept data available
                 </p>
-                <p className="text-[var(--color-text-tertiary)] text-sm">
+                <p className="text-(--color-text-tertiary) text-sm">
                     Generate a startup concept to see refined thesis
                 </p>
             </div>
@@ -36,36 +48,44 @@ function ThesisView({ data }) {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="max-w-4xl mx-auto space-y-6"
+            className="results-container"
         >
-            {/* Header */}
-            <motion.div variants={itemVariants} className="text-center">
-                <h2 className="h2 mb-2">
-                    Refined Concept
+            {/* Professional Hero Header */}
+            <motion.div variants={itemVariants} className="results-hero">
+                <motion.div
+                    className="results-hero-icon"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                >
+                    <Sparkles className="w-10 h-10 text-white" />
+                </motion.div>
+                
+                <h2 className="results-hero-title">
+                    Your Startup Thesis
                 </h2>
-                <p className="text-[var(--color-text-secondary)]">
-                    Your startup idea, structured and validated
+                <p className="results-hero-subtitle">
+                    A validated concept ready for execution
                 </p>
 
-                {/* Action Buttons */}
-                <div className="mt-4 flex items-center justify-center gap-3">
+                <div className="results-hero-actions">
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => {
                             const text = `PROBLEM:\n${data.problem_summary}\n\nSOLUTION:\n${data.solution_summary}\n\nTARGET USERS:\n${data.target_users?.join(', ')}\n\nMVP FEATURES:\n${data.core_features?.map((f, i) => `${i + 1}. ${f}`).join('\n')}`;
                             navigator.clipboard.writeText(text);
                             toast.success('Concept thesis copied to clipboard!');
                         }}
-                        className="btn btn-secondary inline-flex items-center gap-2"
+                        className="results-btn results-btn-primary"
                         aria-label="Copy concept thesis to clipboard"
                     >
-                        <Copy className="h-[18px] w-[18px]" />
+                        <Copy className="w-5 h-5" />
                         <span>Copy All</span>
                     </motion.button>
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => {
                             const text = `PROBLEM:\n${data.problem_summary}\n\nSOLUTION:\n${data.solution_summary}\n\nTARGET USERS:\n${data.target_users?.join(', ')}\n\nMVP FEATURES:\n${data.core_features?.map((f, i) => `${i + 1}. ${f}`).join('\n')}`;
                             const blob = new Blob([text], { type: 'text/plain' });
@@ -77,112 +97,204 @@ function ThesisView({ data }) {
                             URL.revokeObjectURL(url);
                             toast.success('Concept thesis exported!');
                         }}
-                        className="btn btn-secondary inline-flex items-center gap-2"
+                        className="results-btn results-btn-secondary"
                         aria-label="Export concept thesis as text file"
                     >
-                        <Download className="h-[18px] w-[18px]" />
+                        <Download className="w-5 h-5" />
                         <span>Export</span>
                     </motion.button>
                 </div>
             </motion.div>
 
-            {/* Problem & Solution Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-                {/* Problem */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-error-bg)]">
-                            <Target className="w-5 h-5 text-[var(--color-error)]" />
-                        </div>
-                        <h3 className="h4">
-                            The Problem
-                        </h3>
-                    </div>
-                    <p
-                        className="leading-relaxed text-[var(--color-text-secondary)]"
-                    >
+            {/* Problem & Solution - Modern Cards */}
+            <div className="results-content-grid" style={{ marginBottom: 'var(--space-8)' }}>
+                <motion.div variants={itemVariants} className="results-card">
+                    <span className="results-card-badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'rgb(239, 68, 68)' }}>
+                        <Target className="w-4 h-4" />
+                        Challenge
+                    </span>
+                    <h3 className="results-card-title">The Problem</h3>
+                    <p className="results-card-content">
                         {data.problem_summary}
                     </p>
                 </motion.div>
 
-                {/* Solution */}
-                <motion.div variants={itemVariants} className="card">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-[var(--color-success-bg)]">
-                            <Lightbulb className="w-5 h-5 text-[var(--color-success)]" />
-                        </div>
-                        <h3 className="h4">
-                            The Solution
-                        </h3>
-                    </div>
-                    <p
-                        className="leading-relaxed text-[var(--color-text-secondary)]"
-                    >
+                <motion.div variants={itemVariants} className="results-card">
+                    <span className="results-card-badge" style={{ background: 'rgba(34, 197, 94, 0.15)', color: 'rgb(34, 197, 94)' }}>
+                        <Lightbulb className="w-4 h-4" />
+                        Innovation
+                    </span>
+                    <h3 className="results-card-title">The Solution</h3>
+                    <p className="results-card-content">
                         {data.solution_summary}
                     </p>
                 </motion.div>
             </div>
 
-            {/* Target Users */}
-            <motion.div variants={itemVariants} className="card">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-[var(--color-primary-bg)]">
-                        <Users className="w-5 h-5 text-[var(--color-primary)]" />
+            {/* Target Audience - Professional Cards */}
+            <motion.div variants={itemVariants} className="results-section">
+                <div className="results-section-header">
+                    <div className="results-section-icon">
+                        <Users />
                     </div>
-                    <h3 className="h4">
-                        Target Users
-                    </h3>
+                    <div>
+                        <h3 className="results-section-title">Target Audience</h3>
+                        <p className="results-section-subtitle">Who will benefit most from your solution</p>
+                    </div>
                 </div>
-                <div className="grid md:grid-cols-3 gap-4">
-                    {data.target_users?.map((user, index) => (
-                        <div
+                
+                {data.target_users && data.target_users.length > 0 ? (
+                <div className="results-content-grid columns-3">
+                    {data.target_users.map((user, index) => (
+                        <motion.div
                             key={index}
-                            className="rounded-xl bg-[var(--color-bg-secondary)] p-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 * index }}
+                            className="results-card"
+                            style={{ padding: 'var(--space-5)', cursor: 'default' }}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.98 }}
                         >
-                            <div
-                                className="mb-3 flex h-10 w-10 items-center justify-center rounded-full text-white font-bold bg-[var(--color-primary)]"
+                            <div 
+                                style={{
+                                    width: '56px',
+                                    height: '56px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'var(--gradient-primary)',
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    fontSize: 'var(--font-size-h4)',
+                                    fontWeight: '700',
+                                    marginBottom: 'var(--space-4)',
+                                    boxShadow: '0 4px 16px rgba(0, 210, 255, 0.3)'
+                                }}
                             >
                                 {index + 1}
                             </div>
-                            <p
-                                className="text-sm text-[var(--color-text-secondary)]"
-                            >
+                            <p style={{ 
+                                fontSize: 'var(--font-size-body)',
+                                color: 'var(--color-text-primary)',
+                                lineHeight: '1.6',
+                                fontWeight: '500'
+                            }}>
                                 {user}
                             </p>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
+                ) : (
+                    <div className="results-card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                        <Users className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }} />
+                        <p style={{ 
+                            color: 'var(--color-text-secondary)', 
+                            fontSize: 'var(--font-size-body)',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            No target users defined yet
+                        </p>
+                        <p style={{ 
+                            color: 'var(--color-text-muted)', 
+                            fontSize: 'var(--font-size-body-sm)'
+                        }}>
+                            The AI didn't populate this section. Try regenerating the concept.
+                        </p>
+                    </div>
+                )}
             </motion.div>
 
-            {/* Core Features */}
-            <motion.div variants={itemVariants} className="card">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-[var(--color-secondary-bg)]">
-                        <Layers className="w-5 h-5 text-[var(--color-secondary)]" />
+            {/* MVP Core Features - Interactive List */}
+            <motion.div variants={itemVariants} className="results-section">
+                <div className="results-section-header">
+                    <div className="results-section-icon">
+                        <Layers />
                     </div>
-                    <h3 className="h4">
-                        MVP Core Features
-                    </h3>
+                    <div>
+                        <h3 className="results-section-title">MVP Core Features</h3>
+                        <p className="results-section-subtitle">Essential features for your minimum viable product</p>
+                    </div>
                 </div>
-                <div className="grid md:grid-cols-2 gap-3">
-                    {data.core_features?.map((feature, index) => (
-                        <div
+                
+                {data.core_features && data.core_features.length > 0 ? (
+                <div className="results-content-grid">
+                    {data.core_features.map((feature, index) => (
+                        <motion.div
                             key={index}
-                            className="flex items-start gap-3 rounded-xl bg-[var(--color-bg-secondary)] p-4"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 * index }}
+                            whileHover={{ x: 4 }}
+                            className="results-card"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 'var(--space-4)',
+                                padding: 'var(--space-5)',
+                                cursor: 'default'
+                            }}
                         >
-                            <div
-                                className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-bg)] text-xs font-semibold text-[var(--color-primary)]"
+                            <div 
+                                style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    flexShrink: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'var(--gradient-primary)',
+                                    color: 'white',
+                                    borderRadius: 'var(--radius-lg)',
+                                    fontSize: 'var(--font-size-body-sm)',
+                                    fontWeight: '700'
+                                }}
                             >
                                 {index + 1}
                             </div>
-                            <p
-                                className="text-sm text-[var(--color-text-secondary)]"
-                            >
-                                {feature}
-                            </p>
-                        </div>
+                            <div style={{ flex: 1 }}>
+                                <p style={{
+                                    fontSize: 'var(--font-size-body)',
+                                    color: 'var(--color-text-primary)',
+                                    lineHeight: '1.6',
+                                    fontWeight: '500',
+                                    margin: 0
+                                }}>
+                                    {feature}
+                                </p>
+                            </div>
+                            <CheckCircle2 
+                                className="w-5 h-5" 
+                                style={{
+                                    flexShrink: 0,
+                                    color: 'var(--color-success)',
+                                    opacity: 0,
+                                    transition: 'opacity 0.3s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={(e) => e.currentTarget.style.opacity = '0'}
+                            />
+                        </motion.div>
                     ))}
                 </div>
+                ) : (
+                    <div className="results-card" style={{ textAlign: 'center', padding: 'var(--space-8)' }}>
+                        <Layers className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }} />
+                        <p style={{ 
+                            color: 'var(--color-text-secondary)', 
+                            fontSize: 'var(--font-size-body)',
+                            marginBottom: 'var(--space-2)'
+                        }}>
+                            No MVP features generated yet
+                        </p>
+                        <p style={{ 
+                            color: 'var(--color-text-muted)', 
+                            fontSize: 'var(--font-size-body-sm)'
+                        }}>
+                            The AI didn't populate this section. Try regenerating the concept.
+                        </p>
+                    </div>
+                )}
             </motion.div>
         </motion.div>
     );
