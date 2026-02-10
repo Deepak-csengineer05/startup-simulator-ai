@@ -1,8 +1,7 @@
 # Startup Simulator AI
 
-> Transform your startup idea into a complete business package in 30 seconds using AI.
+> Transform your startup idea into a complete business package under a minute using AI.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-18%2B-green.svg)
 ![React](https://img.shields.io/badge/react-19-blue.svg)
 
