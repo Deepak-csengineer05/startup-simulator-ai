@@ -7,6 +7,7 @@ import config from './config/index.js';
 import './config/passport.js';
 import authRoutes from './routes/auth.routes.js';
 import apiRoutes from './routes/api.routes.js';
+import chatRoutes from './routes/chat.routes.js';
 import { metricsMiddleware, register } from './utils/observability/index.js';
 
 
@@ -50,6 +51,7 @@ app.get('/metrics', async (req, res) => {
 // Routes
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
+app.use('/api', chatRoutes);
 
 // 404 handler (ALWAYS LAST)
 app.use((req, res) => {

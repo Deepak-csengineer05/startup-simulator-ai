@@ -164,24 +164,30 @@ Return ONLY raw JSON.`;
 
 
 export async function generateRefinedConcept(ideaText, domain, tone) {
-  const prompt = `You are an expert startup strategist and product consultant with 20 years of experience.
+  const prompt = `You are an expert startup strategist and product consultant with deep experience in the Indian market and ecosystem.
 
-Refine this raw startup idea into a clear, structured concept.
+Refine this raw startup idea into a clear, structured concept specifically for the INDIAN MARKET.
 
 Raw Idea: "${ideaText}"
 Industry Domain: "${domain}"
 Brand Tone: "${tone}"
 
-REQUIREMENTS:
-1. Extract the core problem being solved (1-2 sentences)
-2. Define a clear value proposition/solution (1-2 sentences)
-3. Identify 3 specific target user personas with demographics
-4. Define exactly 4-6 concrete MVP features essential for launch
+INDIAN MARKET CONTEXT:
+- Target Indian users across tier 1, 2, and 3 cities
+- Consider diverse income groups, language preferences, and digital literacy levels
+- Think about India-specific behaviors: price sensitivity, trust barriers, mobile-first usage
+- Reference successful Indian startups like CRED, Zepto, PhonePe, Razorpay, Meesho, etc.
 
-CRITICAL: The "core_features" array MUST contain 4-6 specific, actionable features. Do not leave it empty.
+REQUIREMENTS:
+1. Extract the core problem being solved IN INDIA (1-2 sentences)
+2. Define a clear value proposition/solution for INDIAN USERS (1-2 sentences)
+3. Identify 3 specific target user personas with Indian demographics (urban/semi-urban, income levels, behavior patterns)
+4. Define exactly 4-6 concrete MVP features essential for launch in India
+
+CRITICAL: The "core_features" array MUST contain 4-6 specific, actionable features. Consider vernacular support, UPI payments, mobile-first design where relevant.
 
 Example core_features format:
-["User authentication with email/password", "Dashboard with key metrics", "Payment integration with Stripe", "Real-time notifications"]`;
+["Mobile OTP-based authentication", "Hindi & English language support", "UPI payment integration", "WhatsApp notifications", "Offline mode for low connectivity"]`;
 
   const schema = `{
   "problem_summary": "string (1-2 sentences)",
@@ -194,14 +200,22 @@ Example core_features format:
 }
 
 export async function generateBrandProfile(concept, tone) {
-  const prompt = `You are a world-class brand strategist and naming expert.
+  const prompt = `You are a world-class brand strategist and naming expert with deep understanding of Indian culture and market preferences.
 
-Create a complete brand identity package for a startup.
+Create a complete brand identity package for a startup targeting INDIAN USERS.
 
 Context: ${JSON.stringify(concept, null, 2)}
 Brand Tone: "${tone}"
 
-Create 5 unique, memorable startup name options, write 3 catchy taglines that communicate value, define the brand voice and tone in detail, and create a cohesive 4-color palette with hex codes.`;
+INDIAN MARKET CONSIDERATIONS:
+- Names should be easy to pronounce in both Hindi and English
+- Avoid complex spellings; consider phonetic clarity
+- Be culturally sensitive and avoid offensive connotations
+- Think of successful Indian brands: Paytm, Dunzo, Swiggy, Urban Company, Nykaa
+- Taglines should resonate with Indian aspirations and values
+- Color palette should work well with Indian aesthetic preferences (vibrant but trustworthy)
+
+Create 5 unique, memorable startup name options that work for Indian audience, write 3 catchy taglines that communicate value to Indian users, define the brand voice and tone culturally appropriate for India, and create a cohesive 4-color palette with hex codes that appeals to Indian sensibilities.`;
 
   const schema = `{
   "name_options": ["string"],
@@ -220,21 +234,29 @@ Create 5 unique, memorable startup name options, write 3 catchy taglines that co
 }
 
 export async function generateLandingContent(concept, brand) {
-  const prompt = `You are an expert conversion copywriter and UX designer.
+  const prompt = `You are an expert conversion copywriter and UX designer specializing in the Indian market.
 
-Create high-converting landing page content for a startup.
+Create high-converting landing page content for a startup targeting INDIAN USERS.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Brand Profile: ${JSON.stringify(brand, null, 2)}
 
-Create compelling landing page content with these sections:
-1. HERO: Main headline, subheadline, and CTA text
-2. FEATURES: 3-4 key product features with icons (use icons: rocket, shield, zap, users, chart, or check)
-3. PRICING: 2 pricing tiers with features
-4. FAQ: 3 common questions with answers
-5. CTA: Final call-to-action section
+INDIAN USER PSYCHOLOGY:
+- Indians value trust signals, testimonials, and social proof heavily
+- Price sensitivity is high; emphasize value and savings
+- CTAs should be clear, action-oriented, and build urgency
+- Use ₹ (Rupees) for all pricing, not dollars
+- Reference Indian context where relevant ("Trusted by 1 lakh+ users", "Made in India")
+- Consider mentioning UPI, popular payment methods
 
-Use persuasive, benefit-focused copy that matches the brand tone.`;
+Create compelling landing page content with these sections:
+1. HERO: Main headline, subheadline, and CTA text (should resonate with Indian aspirations)
+2. FEATURES: 3-4 key product features with icons (use icons: rocket, shield, zap, users, chart, or check)
+3. PRICING: 2 pricing tiers with features (use ₹ currency, price in hundreds/thousands of rupees, consider Indian purchasing power)
+4. FAQ: 3 common questions with answers (address trust, privacy, payment security concerns)
+5. CTA: Final call-to-action section (emphasize risk-free trial, money-back guarantee if applicable)
+
+Use persuasive, benefit-focused copy that matches the brand tone and Indian cultural context.`;
 
   const schema = `{
   "hero": {
@@ -298,14 +320,22 @@ Use persuasive, benefit-focused copy that matches the brand tone.`;
 }
 
 export async function generateMarketAnalysis(concept, domain) {
-  const prompt = `You are a senior market research analyst and business strategist.
+  const prompt = `You are a senior market research analyst and business strategist with expertise in the Indian startup ecosystem.
 
-Create a comprehensive market analysis for a startup.
+Create a comprehensive market analysis for a startup launching in INDIA.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Industry Domain: "${domain}"
 
-Estimate market size (TAM, SAM, SOM) with reasoning, identify 3 main competitors with brief analysis, create a SWOT analysis, and outline a go-to-market strategy.`;
+INDIAN MARKET CONTEXT:
+- Population: 1.4 billion with 700M+ internet users
+- Focus on urban + semi-urban markets (tier 1, 2, 3 cities)
+- Consider regional variations, language barriers, infrastructure challenges
+- Reference Indian competitors and success stories in this domain
+- Market sizes should be in ₹ Crores (1 Crore = 10 Million)
+- Think about India Stack, UPI ecosystem, Aadhaar integration opportunities
+
+Estimate market size (TAM, SAM, SOM) IN ₹ CRORES with reasoning for INDIAN MARKET, identify 3 main INDIAN competitors (or international competitors in India) with brief analysis, create a SWOT analysis considering Indian market dynamics, and outline a go-to-market strategy for tier 1 & 2 Indian cities.`;
 
   const schema = `{
   "market_size": {
@@ -359,28 +389,36 @@ Estimate market size (TAM, SAM, SOM) with reasoning, identify 3 main competitors
 }
 
 export async function generatePitchDeck(concept, brand, market) {
-  const prompt = `You are a pitch deck expert who has helped raise $500M+ for startups.
+  const prompt = `You are a pitch deck expert who has helped Indian startups raise ₹1000+ Crores from VCs like Sequoia India, Accel, Blume Ventures, and Matrix Partners India.
 
-Create a compelling 10-slide pitch deck outline.
+Create a compelling 10-slide pitch deck outline for INDIAN INVESTORS.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Brand Profile: ${JSON.stringify(brand, null, 2)}
 Market Analysis: ${JSON.stringify(market, null, 2)}
 
+INDIAN INVESTOR EXPECTATIONS:
+- Emphasize market size in India (use ₹ Crores)
+- Reference successful Indian startups as comparables
+- Highlight India-specific advantages (Digital India, JAM Trinity, UPI ecosystem)
+- Address regulatory compliance (RBI, SEBI, DPIIT startup recognition)
+- Show understanding of tier 2/3 city expansion potential
+- Unit economics and path to profitability matter more in Indian context
+
 Create content for a 10-slide pitch deck following the classic structure:
-1. Title/Hook
-2. Problem
+1. Title/Hook (Make India-relevant)
+2. Problem (Frame in Indian context)
 3. Solution
-4. Market Opportunity
+4. Market Opportunity (Indian market in ₹ Crores)
 5. Product/Demo
-6. Business Model
+6. Business Model (mention UPI, Indian payment methods)
 7. Traction/Milestones
-8. Competition
-9. Team
-10. Ask/Call to Action
+8. Competition (Indian and international players)
+9. Team (mention relevant Indian experience)
+10. Ask/Call to Action (funding amount in ₹ Crores or Lakhs)
 
 Each slide MUST have a "content" array with 3-5 bullet points, and include speaker notes.
-Create all 10 slides with compelling, investor-ready content.`;
+Create all 10 slides with compelling, investor-ready content for Indian VCs.`;
 
   const schema = `{
   "slides": [
@@ -400,14 +438,24 @@ Create all 10 slides with compelling, investor-ready content.`;
 }
 
 export async function generateCodePreview(concept, domain) {
-  const prompt = `You are a senior software architect with 20 years of experience.
+  const prompt = `You are a senior software architect with deep experience building scalable products for the Indian market.
 
-Create a technical implementation plan for a startup MVP.
+Create a technical implementation plan for a startup MVP launching in INDIA.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Industry Domain: "${domain}"
 
-Recommend the optimal tech stack, design the high-level system architecture, write sample code snippets for key components, and estimate development timeline.`;
+INDIAN TECHNICAL CONSIDERATIONS:
+- Mobile-first approach (80%+ traffic from mobile in India)
+- Handle low bandwidth, intermittent connectivity gracefully
+- Support for vernacular languages (Hindi, Tamil, Telugu, Bengali, etc.)
+- UPI payment integration (Razorpay, PhonePe, Paytm gateways)
+- Consider AWS Mumbai, Google Cloud India, or Azure India regions for hosting
+- WhatsApp Business API for notifications (very popular in India)
+- Aadhaar/OTP-based authentication patterns
+- Progressive Web Apps (PWA) for better reach without app store friction
+
+Recommend the optimal tech stack (prioritize technologies popular in Indian startups), design the high-level system architecture (considering Indian infrastructure), write sample code snippets for key components (include UPI payment example if relevant), and estimate development timeline with Indian developer availability in mind.`;
 
   const schema = `{
   "tech_stack": {
@@ -464,14 +512,23 @@ Recommend the optimal tech stack, design the high-level system architecture, wri
 }
 
 export async function generateBusinessModel(concept, domain) {
-  const prompt = `You are a startup business architect and financial strategist.
+  const prompt = `You are a startup business architect and financial strategist with expertise in Indian market dynamics.
 
-Define a robust business model for a new startup.
+Define a robust business model for a new startup launching in INDIA.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Industry Domain: "${domain}"
 
-Identify 3 primary revenue streams, estimate the cost structure (fixed vs variable), identify key resources and partners needed, and define the sales/distribution channels.`;
+INDIAN BUSINESS CONSIDERATIONS:
+- Pricing in ₹ (Rupees) - consider Indian purchasing power parity
+- Payment methods: UPI (dominant), Credit/Debit cards, PayTM, PhonePe, Razorpay
+- Regulatory compliance: GST, RBI guidelines, DPIIT startup recognition benefits
+- Lower CAC in tier 2/3 cities but may require vernacular support
+- WhatsApp, Instagram as key marketing channels in India
+- Partnerships with Indian platforms (Swiggy, Zomato, Amazon India, Flipkart, etc.)
+- Considerfreemium models with low entry barriers (Indians are price-sensitive)
+
+Identify 3 primary revenue streams (with ₹ pricing estimates for Indian market), estimate the cost structure (fixed vs variable, mention Indian operational costs), identify key resources and partners needed (Indian payment gateways, local vendors, WhatsApp Business API), and define the sales/distribution channels (social media marketing, WhatsApp, regional partnerships work well in India).`;
 
   const schema = `{
   "revenue_streams": [
@@ -506,14 +563,24 @@ Identify 3 primary revenue streams, estimate the cost structure (fixed vs variab
 }
 
 export async function generateRiskAnalysis(concept, market) {
-  const prompt = `You are a ruthless venture capital analyst.
+  const prompt = `You are a ruthless venture capital analyst focused on Indian startups, having seen hundreds of failures and exits.
 
-Brutally analyze the risks of this startup concept.
+Brutally analyze the risks of this startup concept in the INDIAN MARKET.
 
 Product Concept: ${JSON.stringify(concept, null, 2)}
 Market Analysis: ${JSON.stringify(market, null, 2)}
 
-Identify 3 critical failure modes (why this will die), calculate a "Success Probability Score" (0-100%) with justification, provide mitigation strategies for each risk, and analyze the "Why Now?" factor.`;
+INDIAN MARKET RISKS TO CONSIDER:
+- Regulatory uncertainty (RBI, SEBI, government policy changes)
+- Intense competition from well-funded Indian unicorns
+- Price sensitivity and low willingness to pay
+- Trust and privacy concerns (data localization, user verification)
+- Infrastructure challenges (payment failures, connectivity issues)
+- Regional fragmentation (language, culture, purchasing power variations)
+- Difficulty in scaling from tier 1 to tier 2/3 cities
+- Funding winter concerns in Indian VC ecosystem
+
+Identify 3 critical failure modes specific to INDIAN MARKET (why this will die in India), calculate a "Success Probability Score" (0-100%) with justification considering Indian market maturity, provide mitigation strategies for each risk (India-specific solutions), and analyze the "Why Now?" factor (why this timing is right for India - Digital India push, UPI adoption, smartphone penetration, etc.).`;
 
   const schema = `{
   "risk_score": {

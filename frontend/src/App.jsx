@@ -7,6 +7,8 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import ForgotPassword from './components/ForgotPassword';
 import Dashboard from './components/Dashboard';
+import History from './components/History';
+import AIAssistant from './components/AIAssistant';
 import Layout from './components/Layout';
 import { Loader2 } from 'lucide-react';
 
@@ -84,6 +86,22 @@ function AppRoutes() {
                 <ProtectedRoute>
                     <Layout>
                         <Dashboard />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/history" element={
+                <ProtectedRoute>
+                    <Layout>
+                        <History />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/ai-assistant" element={
+                <ProtectedRoute>
+                    <Layout>
+                        <AIAssistant />
                     </Layout>
                 </ProtectedRoute>
             } />

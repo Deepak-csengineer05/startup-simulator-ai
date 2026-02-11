@@ -100,6 +100,12 @@ export const sessionApi = {
         const response = await api.get('/api/sessions');
         return response.data;
     },
+    
+    // Get user's session history
+    getUserSessions: async () => {
+        const response = await api.get('/api/sessions');
+        return response.data;
+    },
 
     // Delete a session
     delete: async (sessionId) => {

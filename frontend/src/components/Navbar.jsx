@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Moon, Sun, Settings as SettingsIcon, User, LogOut, ChevronDown } from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
+import { Moon, Sun, Settings as SettingsIcon, User, LogOut, ChevronDown, LayoutDashboard, History, Bot } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,9 +37,9 @@ function Navbar() {
 
     return (
         <nav
-            className="sticky top-0 z-50 border-b backdrop-blur-md"
+            className="fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-md"
             style={{
-                background: isDark ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                background: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                 borderColor: 'var(--color-border)',
             }}
         >
@@ -47,11 +47,11 @@ function Navbar() {
                 className="max-w-7xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between"
             >
                 {/* Logo Area */}
-                <div className="flex items-center gap-2" style={{ marginLeft: 'var(--space-4)' }}>
+                <div className="flex items-center gap-2 flex-shrink-0" style={{ marginLeft: 'var(--space-4)' }}>
                     <img
                         src="/logo-primary.png"
                         alt="Logo"
-                        className="w-10 h-10 sm:w-11 sm:h-11"
+                        className="w-9 h-9 sm:w-10 sm:h-10"
                         style={{
                             borderRadius: '50%',
                             objectFit: 'contain'
@@ -71,21 +71,68 @@ function Navbar() {
                         </h1>
                     </div>
                 </div>
+                
 
                 {/* Right Actions */}
-                <div className="flex items-center" style={{ gap: 'var(--space-1)' }}>
+                <div className="flex items-center flex-shrink-0" style={{ gap: 'var(--space-3)' }}>
+                    {/* Navigation Links - Tab Style */}
+                    <div className="hidden lg:block">
+                        <div className="tab-list" style={{ padding: 'var(--space-1)', gap: 'var(--space-1)' }}>
+                            <Link
+                                to="/dashboard"
+                                className={`tab ${isActive('/dashboard') ? 'active' : ''}`}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--space-2)',
+                                    padding: 'var(--space-2) var(--space-3)',
+                                }}
+                            >
+                                <LayoutDashboard className="w-4 h-4" />
+                                <span>Dashboard</span>
+                            </Link>
+                            
+                            <Link
+                                to="/history"
+                                className={`tab ${isActive('/history') ? 'active' : ''}`}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--space-2)',
+                                    padding: 'var(--space-2) var(--space-3)',
+                                }}
+                            >
+                                <History className="w-4 h-4" />
+                                <span>History</span>
+                            </Link>
+                            
+                            <Link
+                                to="/ai-assistant"
+                                className={`tab ${isActive('/ai-assistant') ? 'active' : ''}`}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--space-2)',
+                                    padding: 'var(--space-2) var(--space-3)',
+                                }}
+                            >
+                                <Bot className="w-4 h-4" />
+                                <span>SUS AI</span>
+                            </Link>
+                        </div>
+                    </div>
                     {/* Theme Toggle */}
                     <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={toggleTheme}
-                        className="p-3 rounded-lg transition-colors"
+                        className="p-2.5 rounded-lg transition-colors"
                         style={{
                             color: 'var(--color-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            minWidth: '44px',
-                            minHeight: '44px',
+                            width: '40px',
+                            height: '40px',
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'var(--color-bg-hover)';
@@ -105,10 +152,9 @@ function Navbar() {
                     {/* Divider */}
                     <div
                         style={{
-                            height: '24px',
+                            height: '28px',
                             width: '1px',
                             background: 'var(--color-border)',
-                            margin: '0 var(--space-1)',
                         }}
                     />
 
@@ -116,14 +162,14 @@ function Navbar() {
                     <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setIsSettingsModalOpen(true)}
-                        className="p-3 rounded-lg transition-colors"
+                        className="p-2.5 rounded-lg transition-colors"
                         style={{
                             color: 'var(--color-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            minWidth: '44px',
-                            minHeight: '44px',
+                            width: '40px',
+                            height: '40px',
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'var(--color-bg-hover)';
@@ -144,10 +190,10 @@ function Navbar() {
                             className="flex items-center rounded-lg transition-all"
                             style={{
                                 gap: 'var(--space-2)',
-                                padding: 'var(--space-2) var(--space-3)',
+                                padding: '6px 12px',
                                 border: '2px solid transparent',
                                 borderColor: isUserMenuOpen ? 'var(--color-border-hover)' : 'transparent',
-                                minHeight: '44px',
+                                height: '40px',
                             }}
                             onMouseEnter={(e) => {
                                 if (!isUserMenuOpen) {

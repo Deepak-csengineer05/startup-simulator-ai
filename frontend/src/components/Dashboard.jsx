@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Loader2, Lightbulb, Palette, FileText,
@@ -41,6 +42,7 @@ const MODULES = [
 
 function Dashboard() {
     const { toast } = useToast();
+    const location = useLocation();
     const ideaInputRef = useRef(null);
     const abortControllerRef = useRef(null);
     const generationStartTimeRef = useRef(null);
@@ -65,10 +67,52 @@ function Dashboard() {
     const charCount = ideaText.length;
     const isOverLimit = charCount > MAX_CHARS;
 
-    // Auto-focus on mount
+    // Auto-focus on mount & restore generation state or load session from history
     useEffect(() => {
         ideaInputRef.current?.focus();
-    }, []);
+        
+        // Check if we're loading a session from History page
+        if (location.state?.session) {
+            const session = location.state.session;
+            setSessionId(session._id || session.id);
+            setIdeaText(session.ideaText || session.idea_text || '');
+            setDomain(session.domainHint || 'SaaS');
+            setTone(session.tonePreference || 'Professional');
+            setStatus(session.status || 'completed');
+            setOutputs(session.outputs || null);
+            
+            // Auto-open first available result
+            if (session.outputs) {
+                const firstModule = MODULES.find(m => session.outputs[m.id]);
+                if (firstModule) {
+                    setActiveModuleId(firstModule.id);
+                }
+            }
+            
+            toast.success('Session loaded successfully');
+            return; // Skip localStorage restoration when loading from history
+        }
+        
+        // Restore generation state from localStorage
+        const savedState = localStorage.getItem('activeGeneration');
+        if (savedState) {
+            try {
+                const { sessionId: savedSessionId, status: savedStatus, ideaText: savedIdea, domain: savedDomain, tone: savedTone, timestamp } = JSON.parse(savedState);
+                
+                // Only restore if generation is less than 1 hour old
+                if (Date.now() - timestamp < 3600000 && (savedStatus === 'creating' || savedStatus === 'processing')) {
+                    setSessionId(savedSessionId);
+                    setStatus(savedStatus);
+                    setIdeaText(savedIdea);
+                    setDomain(savedDomain);
+                    setTone(savedTone);
+                    toast.info('Resumed generation in progress');
+                }
+            } catch (err) {
+                console.error('Failed to restore generation state:', err);
+            }
+        }
+    }, [location.state]);
 
     // Responsive sidebar: auto-collapse on mobile, auto-expand on desktop
     useEffect(() => {
@@ -85,6 +129,24 @@ function Dashboard() {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Save generation state to localStorage during active generation
+    useEffect(() => {
+        if (status === 'creating' || status === 'processing') {
+            const stateToSave = {
+                sessionId,
+                status,
+                ideaText,
+                domain,
+                tone,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('activeGeneration', JSON.stringify(stateToSave));
+        } else if (status === 'completed' || status === 'failed' || status === 'idle') {
+            // Clear saved state when generation finishes
+            localStorage.removeItem('activeGeneration');
+        }
+    }, [status, sessionId, ideaText, domain, tone]);
 
     // Debug logging only when outputs change
     useEffect(() => {
@@ -805,25 +867,64 @@ function Dashboard() {
                             animate={{ x: 0, opacity: 1 }}
                             exit={{ x: '100%', opacity: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="absolute inset-0 bg-white dark:bg-slate-900 z-40 flex flex-col"
+                            style={{ 
+                                position: 'absolute',
+                                inset: 0,
+                                backgroundColor: 'var(--color-bg-primary)',
+                                zIndex: 40,
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}
                         >
                             {/* Detailed Header */}
-                            <div className="h-16 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between bg-white/90 dark:bg-slate-900/90 backdrop-blur">
+                            <div style={{
+                                height: '64px',
+                                borderBottom: '1px solid var(--color-border)',
+                                padding: '0 1.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                backgroundColor: 'var(--color-bg-card)',
+                                backdropFilter: 'blur(10px)'
+                            }}>
                                 <button
                                     onClick={closeModule}
-                                    className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        color: 'var(--color-text-secondary)',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '1rem',
+                                        transition: 'color var(--transition-base)'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
                                 >
                                     <ArrowLeft className="w-5 h-5" />
-                                    <span className="font-semibold">Back to Workspace</span>
+                                    <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>Back to Workspace</span>
                                 </button>
 
-                                <div className="flex items-center gap-4 text-sm text-slate-500">
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '1rem', 
+                                    fontSize: 'var(--font-size-body-sm)', 
+                                    color: 'var(--color-text-muted)' 
+                                }}>
                                     <span className="hidden sm:inline">Session ID: {sessionId?.slice(-6)}</span>
                                 </div>
                             </div>
 
                             {/* Content Area */}
-                            <div className="flex-1 overflow-y-auto p-8 bg-slate-50 dark:bg-slate-900/50">
+                            <div style={{
+                                flex: 1,
+                                overflowY: 'auto',
+                                padding: '2rem',
+                                backgroundColor: 'var(--color-bg-secondary)'
+                            }}>
                                 {ActiveComponent && activeModuleData && (
                                     <ActiveComponent
                                         data={activeModuleData}
