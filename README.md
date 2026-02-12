@@ -152,4 +152,5 @@ MIT License - feel free to use for your own projects!
 
 ---
 
-Built with ❤️ and AI
+Built with ❤️ by Deepak Saravanakumar
+
