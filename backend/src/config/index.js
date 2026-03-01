@@ -7,7 +7,7 @@ const config = {
 
     // JWT
     jwtSecret: process.env.JWT_SECRET || 'fallback-secret-change-in-production',
-    jwtExpiresIn: '7d',
+    jwtExpiresIn: '30d',
 
     // Google OAuth
     google: {

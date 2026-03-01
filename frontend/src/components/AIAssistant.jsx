@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Sparkles, Trash2, Download, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { sessionApi } from '../services/api';
+import { sessionApi, chatApi } from '../services/api';
 import { useToast } from './shared/Toast';
 
 // Generate unique message ID
@@ -17,7 +17,7 @@ function AIAssistant() {
     const { toast } = useToast();
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
-    
+
     const [messages, setMessages] = useState([
         {
             id: generateMessageId(),
@@ -33,7 +33,7 @@ function AIAssistant() {
     const [recentSessions, setRecentSessions] = useState([]);
     const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
     const [isSuggestionsCollapsed, setIsSuggestionsCollapsed] = useState(false);
-    
+
     // Load session from URL param
     useEffect(() => {
         const sessionId = searchParams.get('session');
@@ -42,17 +42,17 @@ function AIAssistant() {
         }
         fetchRecentSessions();
     }, [searchParams]);
-    
+
     // Auto-scroll to bottom
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
-    
+
     // Auto-focus input
     useEffect(() => {
         inputRef.current?.focus();
     }, []);
-    
+
     const fetchRecentSessions = async () => {
         try {
             const data = await sessionApi.getUserSessions();
@@ -65,14 +65,14 @@ function AIAssistant() {
             console.error('Failed to fetch sessions:', error);
         }
     };
-    
+
     const loadSessionContext = async (sessionId) => {
         try {
             const data = await sessionApi.get(sessionId);
             setCurrentSessionId(sessionId);
             setSessionData(data.session);
             toast.success('Session context loaded');
-            
+
             // Add system message
             setMessages(prev => [...prev, {
                 id: generateMessageId(),
@@ -85,23 +85,23 @@ function AIAssistant() {
             toast.error('Failed to load session context');
         }
     };
-    
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        
+
         if (!inputMessage.trim() || isTyping) return;
-        
+
         const userMessage = {
             id: generateMessageId(),
             role: 'user',
             content: inputMessage.trim(),
             timestamp: new Date().toISOString()
         };
-        
+
         setMessages(prev => [...prev, userMessage]);
         setInputMessage('');
         setIsTyping(true);
-        
+
         try {
             // Call chat API
             const response = await fetch('http://localhost:3000/api/chat', {
@@ -119,13 +119,13 @@ function AIAssistant() {
                     }))
                 })
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to get response');
             }
-            
+
             const data = await response.json();
-            
+
             const assistantMessage = {
                 id: generateMessageId(),
                 role: 'assistant',
@@ -134,13 +134,13 @@ function AIAssistant() {
                 context: data.context,
                 inScope: data.inScope
             };
-            
+
             setMessages(prev => [...prev, assistantMessage]);
-            
+
         } catch (error) {
             console.error('Chat error:', error);
             toast.error('Failed to get response. Please try again.');
-            
+
             setMessages(prev => [...prev, {
                 id: generateMessageId(),
                 role: 'assistant',
@@ -152,7 +152,7 @@ function AIAssistant() {
             setIsTyping(false);
         }
     };
-    
+
     const handleClearChat = () => {
         if (window.confirm('Clear all messages? This cannot be undone.')) {
             setMessages([{
@@ -166,14 +166,14 @@ function AIAssistant() {
             toast.success('Chat cleared');
         }
     };
-    
+
     const handleExportChat = () => {
         const chatText = messages.map(m => {
             const time = new Date(m.timestamp).toLocaleTimeString();
             const role = m.role === 'user' ? 'You' : 'SUS AI';
             return `[${time}] ${role}: ${m.content}`;
         }).join('\n\n');
-        
+
         const blob = new Blob([chatText], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -183,7 +183,7 @@ function AIAssistant() {
         URL.revokeObjectURL(url);
         toast.success('Chat exported');
     };
-    
+
     const suggestedQuestions = [
         "How does this platform work?",
         "Explain the 8 modules",
@@ -191,11 +191,11 @@ function AIAssistant() {
         "How to regenerate modules?",
         "Explain my market analysis"
     ];
-    
+
     return (
-        <div 
+        <div
             className="min-h-screen"
-            style={{ 
+            style={{
                 backgroundColor: 'var(--color-bg-secondary)',
                 paddingTop: 'var(--space-6)',
                 paddingBottom: 'var(--space-6)',
@@ -207,7 +207,7 @@ function AIAssistant() {
                 {/* Main Chat Area */}
                 <div className="flex-1 flex flex-col" style={{ minWidth: 0 }}>
                     {/* Header */}
-                    <div 
+                    <div
                         className="card"
                         style={{
                             padding: 'var(--space-6)',
@@ -233,7 +233,7 @@ function AIAssistant() {
                                     <Bot className="w-7 h-7" style={{ color: 'white' }} />
                                 </div>
                                 <div>
-                                    <h1 style={{ 
+                                    <h1 style={{
                                         fontSize: 'var(--font-size-h2)',
                                         fontWeight: 'var(--font-weight-bold)',
                                         color: 'var(--color-text-primary)',
@@ -241,7 +241,7 @@ function AIAssistant() {
                                     }}>
                                         SUS AI Assistant
                                     </h1>
-                                    <p style={{ 
+                                    <p style={{
                                         fontSize: 'var(--font-size-body)',
                                         color: 'var(--color-text-muted)'
                                     }}>
@@ -249,7 +249,7 @@ function AIAssistant() {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                                 <motion.button
                                     whileTap={{ scale: 0.95 }}
@@ -278,9 +278,9 @@ function AIAssistant() {
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Messages Container */}
-                    <div 
+                    <div
                         className="card flex-1"
                         style={{
                             display: 'flex',
@@ -291,7 +291,7 @@ function AIAssistant() {
                         }}
                     >
                         {/* Messages */}
-                        <div 
+                        <div
                             style={{
                                 flex: 1,
                                 overflowY: 'auto',
@@ -301,196 +301,196 @@ function AIAssistant() {
                                 gap: 'var(--space-4)'
                             }}
                         >
-                        {messages.map((message) => (
-                            <MessageBubble key={message.id} message={message} />
-                        ))}
-                        
-                        {isTyping && (
-                            <div style={{ display: 'flex', alignItems: 'start', gap: 'var(--space-3)' }}>
-                                <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: 'var(--radius-lg)',
-                                    background: 'var(--gradient-primary)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0,
-                                    boxShadow: 'var(--shadow-sm)'
-                                }}>
-                                    <Bot style={{ width: '20px', height: '20px', color: 'white' }} />
-                                </div>
-                                <div style={{
-                                    padding: 'var(--space-4)',
-                                    borderRadius: 'var(--radius-lg)',
-                                    backgroundColor: 'var(--color-bg-secondary)',
-                                    border: '2px solid var(--color-border)'
-                                }}>
-                                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms', color: 'var(--color-primary)' }}></span>
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms', color: 'var(--color-primary)' }}></span>
-                                        <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms', color: 'var(--color-primary)' }}></span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        <div ref={messagesEndRef} />
-                    </div>
-                    
-                    {/* Suggested Questions - Collapsible */}
-                    {messages.length === 1 && (
-                        <AnimatePresence>
-                            {!isSuggestionsCollapsed && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    style={{
-                                        overflow: 'hidden',
-                                        borderTop: '2px solid var(--color-border)'
-                                    }}
-                                >
+                            {messages.map((message) => (
+                                <MessageBubble key={message.id} message={message} />
+                            ))}
+
+                            {isTyping && (
+                                <div style={{ display: 'flex', alignItems: 'start', gap: 'var(--space-3)' }}>
                                     <div style={{
-                                        padding: 'var(--space-4) var(--space-6)',
-                                        backgroundColor: 'var(--color-bg-secondary)'
-                                    }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
-                                            <p style={{ 
-                                                fontSize: 'var(--font-size-body-sm)',
-                                                fontWeight: 'var(--font-weight-medium)',
-                                                color: 'var(--color-text-muted)',
-                                                margin: 0
-                                            }}>
-                                                💡 Suggested questions:
-                                            </p>
-                                            <motion.button
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => setIsSuggestionsCollapsed(true)}
-                                                className="btn-ghost"
-                                                style={{
-                                                    padding: 'var(--space-1)',
-                                                    fontSize: 'var(--font-size-xs)',
-                                                    color: 'var(--color-text-muted)'
-                                                }}
-                                                title="Hide suggestions"
-                                            >
-                                                Hide
-                                            </motion.button>
-                                        </div>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-                                            {suggestedQuestions.map((q, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => setInputMessage(q)}
-                                                    className="btn-ghost"
-                                                    style={{
-                                                        padding: 'var(--space-2) var(--space-4)',
-                                                        fontSize: 'var(--font-size-body-sm)',
-                                                        borderRadius: 'var(--radius-full)',
-                                                        border: '2px solid var(--color-border)',
-                                                        transition: 'all var(--transition-base)'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.currentTarget.style.borderColor = 'var(--color-primary)';
-                                                        e.currentTarget.style.color = 'var(--color-primary)';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.currentTarget.style.borderColor = 'var(--color-border)';
-                                                        e.currentTarget.style.color = 'var(--color-text-secondary)';
-                                                    }}
-                                                >
-                                                    {q}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    )}
-                    
-                    {/* Show suggestions button when collapsed */}
-                    {messages.length === 1 && isSuggestionsCollapsed && (
-                        <div style={{
-                            padding: 'var(--space-2) var(--space-6)',
-                            borderTop: '2px solid var(--color-border)',
-                            backgroundColor: 'var(--color-bg-secondary)',
-                            display: 'flex',
-                            justifyContent: 'center'
-                        }}>
-                            <motion.button
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => setIsSuggestionsCollapsed(false)}
-                                className="btn-ghost"
-                                style={{
-                                    padding: 'var(--space-2) var(--space-4)',
-                                    fontSize: 'var(--font-size-body-sm)',
-                                    color: 'var(--color-text-muted)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 'var(--space-2)'
-                                }}
-                            >
-                                <span>💡</span>
-                                <span>Show suggested questions</span>
-                            </motion.button>
-                        </div>
-                    )}
-                    
-                    {/* Input */}
-                    <form onSubmit={handleSendMessage}>
-                        <div style={{
-                            padding: 'var(--space-4) var(--space-6)',
-                            borderTop: '2px solid var(--color-border)',
-                            backgroundColor: 'var(--color-bg-card)'
-                        }}>
-                            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={inputMessage}
-                                    onChange={(e) => setInputMessage(e.target.value)}
-                                    placeholder="Ask me anything about the platform or your startup..."
-                                    style={{
-                                        flex: 1,
-                                        padding: 'var(--space-4)',
-                                        fontSize: 'var(--font-size-body)',
-                                        borderRadius: 'var(--radius-xl)',
-                                        border: '2px solid var(--color-border)',
-                                        backgroundColor: 'var(--color-bg-secondary)',
-                                        color: 'var(--color-text-primary)',
-                                        outline: 'none',
-                                        transition: 'all var(--transition-base)'
-                                    }}
-                                    onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-                                    onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-                                    maxLength={1000}
-                                />
-                                <motion.button
-                                    whileTap={{ scale: 0.95 }}
-                                    type="submit"
-                                    disabled={!inputMessage.trim() || isTyping}
-                                    className="btn-primary"
-                                    style={{
-                                        padding: 'var(--space-4) var(--space-6)',
-                                        borderRadius: 'var(--radius-xl)',
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: 'var(--radius-lg)',
+                                        background: 'var(--gradient-primary)',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: 'var(--space-2)',
-                                        opacity: (!inputMessage.trim() || isTyping) ? 0.5 : 1
+                                        justifyContent: 'center',
+                                        flexShrink: 0,
+                                        boxShadow: 'var(--shadow-sm)'
+                                    }}>
+                                        <Bot style={{ width: '20px', height: '20px', color: 'white' }} />
+                                    </div>
+                                    <div style={{
+                                        padding: 'var(--space-4)',
+                                        borderRadius: 'var(--radius-lg)',
+                                        backgroundColor: 'var(--color-bg-secondary)',
+                                        border: '2px solid var(--color-border)'
+                                    }}>
+                                        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                                            <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms', color: 'var(--color-primary)' }}></span>
+                                            <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms', color: 'var(--color-primary)' }}></span>
+                                            <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms', color: 'var(--color-primary)' }}></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        {/* Suggested Questions - Collapsible */}
+                        {messages.length === 1 && (
+                            <AnimatePresence>
+                                {!isSuggestionsCollapsed && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        style={{
+                                            overflow: 'hidden',
+                                            borderTop: '2px solid var(--color-border)'
+                                        }}
+                                    >
+                                        <div style={{
+                                            padding: 'var(--space-4) var(--space-6)',
+                                            backgroundColor: 'var(--color-bg-secondary)'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+                                                <p style={{
+                                                    fontSize: 'var(--font-size-body-sm)',
+                                                    fontWeight: 'var(--font-weight-medium)',
+                                                    color: 'var(--color-text-muted)',
+                                                    margin: 0
+                                                }}>
+                                                    💡 Suggested questions:
+                                                </p>
+                                                <motion.button
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => setIsSuggestionsCollapsed(true)}
+                                                    className="btn-ghost"
+                                                    style={{
+                                                        padding: 'var(--space-1)',
+                                                        fontSize: 'var(--font-size-xs)',
+                                                        color: 'var(--color-text-muted)'
+                                                    }}
+                                                    title="Hide suggestions"
+                                                >
+                                                    Hide
+                                                </motion.button>
+                                            </div>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+                                                {suggestedQuestions.map((q, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => setInputMessage(q)}
+                                                        className="btn-ghost"
+                                                        style={{
+                                                            padding: 'var(--space-2) var(--space-4)',
+                                                            fontSize: 'var(--font-size-body-sm)',
+                                                            borderRadius: 'var(--radius-full)',
+                                                            border: '2px solid var(--color-border)',
+                                                            transition: 'all var(--transition-base)'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.borderColor = 'var(--color-primary)';
+                                                            e.currentTarget.style.color = 'var(--color-primary)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.borderColor = 'var(--color-border)';
+                                                            e.currentTarget.style.color = 'var(--color-text-secondary)';
+                                                        }}
+                                                    >
+                                                        {q}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        )}
+
+                        {/* Show suggestions button when collapsed */}
+                        {messages.length === 1 && isSuggestionsCollapsed && (
+                            <div style={{
+                                padding: 'var(--space-2) var(--space-6)',
+                                borderTop: '2px solid var(--color-border)',
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                display: 'flex',
+                                justifyContent: 'center'
+                            }}>
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsSuggestionsCollapsed(false)}
+                                    className="btn-ghost"
+                                    style={{
+                                        padding: 'var(--space-2) var(--space-4)',
+                                        fontSize: 'var(--font-size-body-sm)',
+                                        color: 'var(--color-text-muted)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 'var(--space-2)'
                                     }}
                                 >
-                                    <Sparkles style={{ width: '20px', height: '20px' }} />
-                                    <span>Send</span>
+                                    <span>💡</span>
+                                    <span>Show suggested questions</span>
                                 </motion.button>
                             </div>
-                        </div>
-                    </form>
+                        )}
+
+                        {/* Input */}
+                        <form onSubmit={handleSendMessage}>
+                            <div style={{
+                                padding: 'var(--space-4) var(--space-6)',
+                                borderTop: '2px solid var(--color-border)',
+                                backgroundColor: 'var(--color-bg-card)'
+                            }}>
+                                <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={inputMessage}
+                                        onChange={(e) => setInputMessage(e.target.value)}
+                                        placeholder="Ask me anything about the platform or your startup..."
+                                        style={{
+                                            flex: 1,
+                                            padding: 'var(--space-4)',
+                                            fontSize: 'var(--font-size-body)',
+                                            borderRadius: 'var(--radius-xl)',
+                                            border: '2px solid var(--color-border)',
+                                            backgroundColor: 'var(--color-bg-secondary)',
+                                            color: 'var(--color-text-primary)',
+                                            outline: 'none',
+                                            transition: 'all var(--transition-base)'
+                                        }}
+                                        onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
+                                        onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                                        maxLength={1000}
+                                    />
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
+                                        type="submit"
+                                        disabled={!inputMessage.trim() || isTyping}
+                                        className="btn-primary"
+                                        style={{
+                                            padding: 'var(--space-4) var(--space-6)',
+                                            borderRadius: 'var(--radius-xl)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 'var(--space-2)',
+                                            opacity: (!inputMessage.trim() || isTyping) ? 0.5 : 1
+                                        }}
+                                    >
+                                        <Sparkles style={{ width: '20px', height: '20px' }} />
+                                        <span>Send</span>
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                
+
                 {/* Context Sidebar - Collapsible */}
                 <AnimatePresence>
                     {!isPanelCollapsed && (
@@ -516,7 +516,7 @@ function AIAssistant() {
                                 justifyContent: 'space-between',
                                 backgroundColor: 'var(--color-bg-secondary)'
                             }}>
-                                <h3 style={{ 
+                                <h3 style={{
                                     fontSize: 'var(--font-size-h4)',
                                     fontWeight: 'var(--font-weight-semibold)',
                                     color: 'var(--color-text-primary)',
@@ -537,7 +537,7 @@ function AIAssistant() {
                                     <ChevronRight style={{ width: '20px', height: '20px' }} />
                                 </motion.button>
                             </div>
-                            
+
                             <div style={{
                                 flex: 1,
                                 overflowY: 'auto',
@@ -545,7 +545,7 @@ function AIAssistant() {
                             }}>
                                 {sessionData ? (
                                     <div style={{ marginBottom: 'var(--space-6)' }}>
-                                        <div 
+                                        <div
                                             style={{
                                                 padding: 'var(--space-4)',
                                                 borderRadius: 'var(--radius-lg)',
@@ -566,7 +566,7 @@ function AIAssistant() {
                                                     backgroundColor: 'var(--color-success)',
                                                     display: 'inline-block'
                                                 }}></span>
-                                                <span style={{ 
+                                                <span style={{
                                                     fontSize: 'var(--font-size-body-sm)',
                                                     fontWeight: 'var(--font-weight-semibold)',
                                                     color: 'var(--color-success)'
@@ -574,7 +574,7 @@ function AIAssistant() {
                                                     Active Session
                                                 </span>
                                             </div>
-                                            <p style={{ 
+                                            <p style={{
                                                 fontSize: 'var(--font-size-body-sm)',
                                                 color: 'var(--color-text-primary)',
                                                 lineHeight: '1.5',
@@ -625,7 +625,7 @@ function AIAssistant() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div 
+                                    <div
                                         style={{
                                             padding: 'var(--space-5)',
                                             borderRadius: 'var(--radius-lg)',
@@ -634,7 +634,7 @@ function AIAssistant() {
                                             textAlign: 'center'
                                         }}
                                     >
-                                        <p style={{ 
+                                        <p style={{
                                             fontSize: 'var(--font-size-body-sm)',
                                             color: 'var(--color-text-muted)'
                                         }}>
@@ -642,10 +642,10 @@ function AIAssistant() {
                                         </p>
                                     </div>
                                 )}
-                                
+
                                 {/* Recent Sessions */}
                                 <div style={{ marginTop: 'var(--space-6)' }}>
-                                    <h3 style={{ 
+                                    <h3 style={{
                                         fontSize: 'var(--font-size-body-sm)',
                                         fontWeight: 'var(--font-weight-semibold)',
                                         color: 'var(--color-text-secondary)',
@@ -681,7 +681,7 @@ function AIAssistant() {
                                                     }
                                                 }}
                                             >
-                                                <p style={{ 
+                                                <p style={{
                                                     fontSize: 'var(--font-size-body-sm)',
                                                     color: 'var(--color-text-primary)',
                                                     lineHeight: '1.4',
@@ -695,7 +695,7 @@ function AIAssistant() {
                                                 </p>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                                                     <Clock style={{ width: '12px', height: '12px', color: 'var(--color-text-muted)' }} />
-                                                    <span style={{ 
+                                                    <span style={{
                                                         fontSize: 'var(--font-size-xs)',
                                                         color: 'var(--color-text-muted)'
                                                     }}>
@@ -710,7 +710,7 @@ function AIAssistant() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-                
+
                 {/* Toggle Button (when collapsed) */}
                 {isPanelCollapsed && (
                     <motion.button
@@ -742,7 +742,7 @@ function AIAssistant() {
 function MessageBubble({ message }) {
     const isUser = message.role === 'user';
     const isSystem = message.role === 'system';
-    
+
     if (isSystem) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--space-4) 0' }}>
@@ -760,7 +760,7 @@ function MessageBubble({ message }) {
             </div>
         );
     }
-    
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -788,7 +788,7 @@ function MessageBubble({ message }) {
                     <Bot style={{ width: '20px', height: '20px', color: 'white' }} />
                 </div>
             )}
-            
+
             <div style={{
                 maxWidth: '70%',
                 display: 'flex',
@@ -813,7 +813,7 @@ function MessageBubble({ message }) {
                         backgroundColor: 'var(--color-error-bg)'
                     } : {})
                 }}>
-                    <p style={{ 
+                    <p style={{
                         whiteSpace: 'pre-wrap',
                         lineHeight: '1.6',
                         margin: 0,
@@ -822,7 +822,7 @@ function MessageBubble({ message }) {
                         {message.content}
                     </p>
                 </div>
-                
+
                 {!isUser && message.context && (
                     <span style={{
                         fontSize: 'var(--font-size-xs)',

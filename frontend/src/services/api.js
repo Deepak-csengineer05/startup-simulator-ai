@@ -100,7 +100,7 @@ export const sessionApi = {
         const response = await api.get('/api/sessions');
         return response.data;
     },
-    
+
     // Get user's session history
     getUserSessions: async () => {
         const response = await api.get('/api/sessions');
@@ -110,6 +110,19 @@ export const sessionApi = {
     // Delete a session
     delete: async (sessionId) => {
         const response = await api.delete(`/api/sessions/${sessionId}`);
+        return response.data;
+    }
+};
+
+// Chat API
+export const chatApi = {
+    // Send message to SUS AI assistant
+    sendMessage: async (data) => {
+        const response = await api.post('/api/chat', {
+            message: data.message,
+            sessionId: data.sessionId || null,
+            conversationHistory: data.conversationHistory || []
+        });
         return response.data;
     }
 };

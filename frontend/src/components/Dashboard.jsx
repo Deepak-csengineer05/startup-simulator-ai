@@ -70,7 +70,7 @@ function Dashboard() {
     // Auto-focus on mount & restore generation state or load session from history
     useEffect(() => {
         ideaInputRef.current?.focus();
-        
+
         // Check if we're loading a session from History page
         if (location.state?.session) {
             const session = location.state.session;
@@ -80,7 +80,7 @@ function Dashboard() {
             setTone(session.tonePreference || 'Professional');
             setStatus(session.status || 'completed');
             setOutputs(session.outputs || null);
-            
+
             // Auto-open first available result
             if (session.outputs) {
                 const firstModule = MODULES.find(m => session.outputs[m.id]);
@@ -88,17 +88,17 @@ function Dashboard() {
                     setActiveModuleId(firstModule.id);
                 }
             }
-            
+
             toast.success('Session loaded successfully');
             return; // Skip localStorage restoration when loading from history
         }
-        
+
         // Restore generation state from localStorage
         const savedState = localStorage.getItem('activeGeneration');
         if (savedState) {
             try {
                 const { sessionId: savedSessionId, status: savedStatus, ideaText: savedIdea, domain: savedDomain, tone: savedTone, timestamp } = JSON.parse(savedState);
-                
+
                 // Only restore if generation is less than 1 hour old
                 if (Date.now() - timestamp < 3600000 && (savedStatus === 'creating' || savedStatus === 'processing')) {
                     setSessionId(savedSessionId);
@@ -291,6 +291,11 @@ function Dashboard() {
                 errorMsg = 'Cannot connect to server. Make sure the backend is running on http://localhost:3000';
             } else if (err.response?.status === 401) {
                 errorMsg = 'Authentication required. Please log in again.';
+            } else if (err.response?.status === 409) {
+                // Race condition - generation already in progress
+                errorMsg = 'Generation already in progress. Please wait...';
+                toast.warning(errorMsg);
+                return; // Don't set error state, it's not really an error
             } else if (err.response?.data?.error) {
                 errorMsg = err.response.data.error;
             }
@@ -804,7 +809,7 @@ function Dashboard() {
                 {
                     outputs && !activeModuleId && (
                         <div className="dashboard-grid-wrapper">
-                            <motion.header 
+                            <motion.header
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.5 }}
@@ -816,7 +821,7 @@ function Dashboard() {
                                 </div>
                             </motion.header>
 
-                            <motion.div 
+                            <motion.div
                                 initial="hidden"
                                 animate="visible"
                                 variants={{
@@ -867,7 +872,7 @@ function Dashboard() {
                             animate={{ x: 0, opacity: 1 }}
                             exit={{ x: '100%', opacity: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            style={{ 
+                            style={{
                                 position: 'absolute',
                                 inset: 0,
                                 backgroundColor: 'var(--color-bg-primary)',
@@ -907,12 +912,12 @@ function Dashboard() {
                                     <span style={{ fontWeight: 'var(--font-weight-semibold)' }}>Back to Workspace</span>
                                 </button>
 
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: '1rem', 
-                                    fontSize: 'var(--font-size-body-sm)', 
-                                    color: 'var(--color-text-muted)' 
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem',
+                                    fontSize: 'var(--font-size-body-sm)',
+                                    color: 'var(--color-text-muted)'
                                 }}>
                                     <span className="hidden sm:inline">Session ID: {sessionId?.slice(-6)}</span>
                                 </div>

@@ -6,6 +6,9 @@ const connectDB = async (retries = 5, delay = 5000) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             const conn = await mongoose.connect(config.mongodbUri, {
+                // Connection pool settings for production scalability
+                maxPoolSize: 50,        // Maximum connections  in pool
+                minPoolSize: 10,        // Minimum connections maintained
                 serverSelectionTimeoutMS: 10000,
                 socketTimeoutMS: 45000,
             });
@@ -35,7 +38,7 @@ const connectDB = async (retries = 5, delay = 5000) => {
         } catch (error) {
             logger.error(`MongoDB connection attempt ${attempt}/${retries} failed:`, error);
             console.error(`❌ MongoDB connection attempt ${attempt}/${retries} failed:`, error.message);
-            
+
             if (attempt === retries) {
                 console.error('\n💥 Failed to connect to MongoDB after multiple attempts.');
                 console.error('   Please ensure MongoDB is running and the connection string is correct.');
@@ -53,13 +56,13 @@ const connectDB = async (retries = 5, delay = 5000) => {
 const verifyIndexes = async () => {
     try {
         const db = mongoose.connection.db;
-        
+
         // Check User indexes
         const userIndexes = await db.collection('users').indexes();
-        
+
         // Check Session indexes
         const sessionIndexes = await db.collection('sessions').indexes();
-        
+
         console.log(`✅ Database indexes verified (Users: ${userIndexes.length}, Sessions: ${sessionIndexes.length})`);
     } catch (error) {
         logger.warn('Failed to verify indexes:', error);

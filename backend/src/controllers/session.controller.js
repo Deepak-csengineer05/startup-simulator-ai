@@ -72,6 +72,14 @@ export const generateCore = async (req, res, next) => {
       return res.status(404).json({ error: "Session not found" });
     }
 
+    // RACE CONDITION PREVENTION: Check if generation already in progress
+    if (session.status === "processing") {
+      return res.status(409).json({
+        error: "Generation already in progress for this session",
+        status: "processing"
+      });
+    }
+
     session.status = "processing";
     await session.save();
 
@@ -85,13 +93,13 @@ export const generateCore = async (req, res, next) => {
         session.domainHint,
         session.tonePreference
       );
-      
+
       // DEBUG: Log what we got from AI
       console.log('=== REFINED CONCEPT FROM AI ===');
       console.log(JSON.stringify(refinedConcept, null, 2));
       console.log('=== core_features ===');
       console.log(refinedConcept.core_features);
-      
+
       // Validate refined concept has required fields
       if (!refinedConcept.core_features || !Array.isArray(refinedConcept.core_features) || refinedConcept.core_features.length === 0) {
         logger.warn("Refined concept missing core_features, adding placeholder", { sessionId: id });
@@ -102,7 +110,7 @@ export const generateCore = async (req, res, next) => {
           "Export and sharing capabilities"
         ];
       }
-      
+
       if (!refinedConcept.target_users || !Array.isArray(refinedConcept.target_users) || refinedConcept.target_users.length === 0) {
         logger.warn("Refined concept missing target_users, adding placeholder", { sessionId: id });
         refinedConcept.target_users = [
@@ -111,13 +119,13 @@ export const generateCore = async (req, res, next) => {
           "Individual users with specific pain points"
         ];
       }
-      
+
       console.log('=== FINAL REFINED CONCEPT (after validation) ===');
       console.log(JSON.stringify(refinedConcept, null, 2));
-      
+
       session.outputs.refined_concept = refinedConcept;
       await session.save();
-      
+
       console.log('=== SAVED TO DB ===');
       console.log('Session outputs:', JSON.stringify(session.outputs.refined_concept, null, 2));
 
